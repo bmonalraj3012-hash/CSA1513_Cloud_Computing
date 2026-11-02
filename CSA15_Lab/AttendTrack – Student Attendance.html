@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AttendTrack – Student Attendance</title>
+<style>
+:root{--bg:#f4f2f9;--panel:#fff;--ink:#221d33;--mute:#6d6685;--line:#dcd8ea;--accent:#6a3fc7;--accent-ink:#fff;--ok:#1f7a45;--bad:#c0392b;--warn:#b8761a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141122;--panel:#1d1933;--ink:#ece8fa;--mute:#a9a2c6;--line:#342e52;--accent:#b79cff;--accent-ink:#1b0f3d;--ok:#6fd39a;--bad:#ff8a7a;--warn:#f0c26a}}
+:root[data-theme="dark"]{--bg:#141122;--panel:#1d1933;--ink:#ece8fa;--mute:#a9a2c6;--line:#342e52;--accent:#b79cff;--accent-ink:#1b0f3d;--ok:#6fd39a;--bad:#ff8a7a;--warn:#f0c26a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:14px 20px;background:var(--accent);color:var(--accent-ink)}
+header b{font-size:1.35rem}header small{margin-left:10px;opacity:.85}
+main{max-width:1040px;margin:0 auto;padding:20px;display:grid;gap:20px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{margin:0 0 14px;font-size:1.15rem}
+.tabs{display:flex;gap:8px}
+.tabs label{padding:9px 20px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-weight:600;background:var(--panel)}
+.tabs input{position:absolute;opacity:0}
+.tabs input:checked+span{background:var(--accent);color:var(--accent-ink);display:block;margin:-9px -20px;padding:9px 20px;border-radius:6px}
+.tabs input:focus-visible+span{outline:2px solid var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input[type=text],input[type=date],select{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;font-weight:700;padding:9px 18px;border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.sm{padding:4px 10px;font-size:.82rem}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--mute);font-size:.76rem;text-transform:uppercase}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.stat b{display:block;font-size:1.3rem}.stat span{color:var(--mute);font-size:.8rem}
+.bar{height:8px;border-radius:4px;background:var(--line);min-width:90px;overflow:hidden}.bar i{display:block;height:100%}
+.pill{padding:2px 10px;border-radius:99px;font-weight:700;font-size:.78rem;border:1px solid var(--line)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.msg{color:var(--mute);font-size:.9rem}.err{color:var(--bad);font-weight:600}.okm{color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+<header><b>✅ AttendTrack</b><small>Student attendance · SaaS demo</small></header>
+<main>
+<div class="tabs" role="radiogroup" aria-label="View">
+<label><input type="radio" name="role" value="stu" checked><span>Student</span></label>
+<label><input type="radio" name="role" value="stf"><span>Staff</span></label>
+</div>
+
+<section aria-labelledby="s1">
+<h2 id="s1">Attendance summary</h2>
+<div class="grid" style="margin-bottom:14px">
+<label class="f">Course<select id="fc"></select></label>
+<label class="f">Search name or reg no<input type="text" id="fq"></label>
+</div>
+<div class="stats" id="stats"></div>
+<div class="wrap"><table id="sum"></table></div>
+<p class="msg">Attendance % = (Present + approved OD) ÷ classes held. 75% is the minimum for exam eligibility.</p>
+</section>
+
+<section id="stuSec" aria-labelledby="s2">
+<h2 id="s2">OD (On Duty) request</h2>
+<div class="grid">
+<label class="f">Register number<input type="text" id="or"></label>
+<label class="f">OD date<input type="date" id="od"></label>
+<label class="f">Reason<select id="ot"><option>Symposium / paper presentation</option><option>Sports event</option><option>Placement drive</option><option>Hackathon / project review</option><option>NSS / NCC / club activity</option></select></label>
+</div>
+<p id="e1" class="err" role="alert"></p>
+<button id="sendOD">Submit OD request</button>
+<h2 style="margin-top:20px">My OD requests</h2>
+<div class="wrap" id="myod"></div>
+</section>
+
+<div id="stfSec" hidden style="display:none;gap:20px">
+<section aria-labelledby="s3">
+<h2 id="s3">Mark attendance</h2>
+<div class="grid">
+<label class="f">Course<select id="mc"></select></label>
+<label class="f">Date<input type="date" id="md"></label>
+</div>
+<div class="wrap" style="margin:12px 0"><table id="mt"></table></div>
+<p id="e2" class="err" role="alert"></p>
+<button id="saveA">Save attendance</button>
+</section>
+
+<section aria-labelledby="s4">
+<h2 id="s4">OD requests to approve</h2>
+<div class="wrap" id="odq"></div>
+</section>
+
+<section aria-labelledby="s5">
+<h2 id="s5">Add student / course</h2>
+<div class="grid">
+<label class="f">Name of the student<input type="text" id="sn"></label>
+<label class="f">Reg no<input type="text" id="sr"></label>
+<label class="f">Course<select id="sc"></select></label>
+</div>
+<p id="e3" class="err" role="alert"></p>
+<button id="addS">Add student</button>
+<div class="grid" style="margin-top:16px">
+<label class="f">New course name<input type="text" id="cn"></label>
+</div>
+<p><button class="alt" id="addC" style="margin-top:8px">Add course</button></p>
+</section>
+</div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const iso=d=>d.toISOString().slice(0,10),TODAY=iso(new Date());
+const hash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+let courses=["Data Structures","Database Systems"];
+let students=[["Arun Kumar","192311001",0],["Priya Lakshmi","192311002",0],["Mohammed Rafi","192311003",0],["Divya S","192311004",1],["Karthik R","192311005",1],["Meena V","192311006",1]].map(a=>({name:a[0],reg:a[1],course:courses[a[2]]}));
+let recs={},ods=[];
+(function seed(){let d=new Date(),n=0;while(n<10){d.setDate(d.getDate()-1);if(d.getDay()%6){n++;students.forEach(s=>{const h=hash(s.reg+iso(d))%100,bias=s.reg.endsWith("4")?35:s.reg.endsWith("3")?15:5;recs[iso(d)+"|"+s.course+"|"+s.reg]=h<bias?"A":h>96?"OD":"P"})}}})();
+try{const x=JSON.parse(localStorage.getItem("atrack")||"null");if(x){courses=x.courses;students=x.students;recs=x.recs;ods=x.ods}}catch(e){}
+const save=()=>{try{localStorage.setItem("atrack",JSON.stringify({courses,students,recs,ods}))}catch(e){}};
+const key=(d,c,r)=>d+"|"+c+"|"+r;
+
+function stats(s){
+ let p=0,a=0,o=0;
+ Object.keys(recs).forEach(k=>{const q=k.split("|");if(q[1]===s.course&&q[2]===s.reg){const v=recs[k];v==="P"?p++:v==="A"?a++:o++}});
+ const t=p+a+o,pct=t?(p+o)/t*100:0;
+ const g=!t?["–","No classes yet"]:pct>=95?["O","Outstanding"]:pct>=90?["A+","Excellent"]:pct>=85?["A","Very good"]:pct>=80?["B+","Good"]:pct>=75?["B","Satisfactory"]:["Shortage","Not eligible for exam"];
+ return{p,a,o,t,pct,g};
+}
+const held=c=>new Set(Object.keys(recs).filter(k=>k.split("|")[1]===c).map(k=>k.split("|")[0])).size;
+const color=p=>p>=85?"var(--ok)":p>=75?"var(--warn)":"var(--bad)";
+
+function fillSel(){
+ const o=courses.map(c=>`<option>${esc(c)}</option>`).join("");
+ const cur=$("fc").value;$("fc").innerHTML='<option value="">All courses</option>'+o;if(courses.includes(cur))$("fc").value=cur;
+ [$("mc"),$("sc")].forEach(s=>{const v=s.value;s.innerHTML=o;if(courses.includes(v))s.value=v});
+}
+function summary(){
+ const c=$("fc").value,q=$("fq").value.toLowerCase();
+ const rows=students.filter(s=>(!c||s.course===c)&&(!q||(s.name+s.reg).toLowerCase().includes(q))).map(s=>({s,x:stats(s)}));
+ const withT=rows.filter(r=>r.x.t),low=withT.filter(r=>r.x.pct<75).length;
+ $("stats").innerHTML=`<div class="stat"><b>${rows.length}</b><span>Students</span></div><div class="stat"><b>${c?held(c):courses.reduce((a,x)=>a+held(x),0)}</b><span>Classes held</span></div><div class="stat"><b>${withT.length?(withT.reduce((a,r)=>a+r.x.pct,0)/withT.length).toFixed(1)+"%":"–"}</b><span>Average attendance</span></div><div class="stat"><b class="${low?"bad":"ok"}">${low}</b><span>Below 75%</span></div>`;
+ $("sum").innerHTML=rows.length?`<thead><tr><th>Name of the student</th><th>Reg no</th><th>Course</th><th>Present</th><th>Absent</th><th>OD</th><th>Classes</th><th>Course attendance</th><th>Attendance %</th><th>Grade</th></tr></thead><tbody>${rows.map(({s,x})=>`<tr><td>${esc(s.name)}</td><td>${esc(s.reg)}</td><td>${esc(s.course)}</td><td>${x.p}</td><td>${x.a}</td><td>${x.o}</td><td>${x.t}</td><td><div class="bar"><i style="width:${x.pct}%;background:${color(x.pct)}"></i></div></td><td><b style="color:${color(x.pct)}">${x.t?x.pct.toFixed(1)+"%":"–"}</b></td><td>${x.g[0]} <span class="msg">${x.g[0]==="Shortage"?"· "+x.g[1]:""}</span></td></tr>`).join("")}</tbody>`:'<tbody><tr><td class="msg">No students match.</td></tr></tbody>';
+}
+function odLists(){
+ const r=$("or").value.trim().toUpperCase(),mine=ods.filter(o=>o.reg===r);
+ $("myod").innerHTML=!r?'<p class="msg">Enter your register number to see your requests.</p>':mine.length?`<table><thead><tr><th>Date</th><th>Reason</th><th>Status</th></tr></thead><tbody>${mine.map(o=>`<tr><td>${o.date}</td><td>${esc(o.reason)}</td><td class="${o.st==="Approved"?"ok":o.st==="Rejected"?"bad":"warn"}"><b>${o.st}</b></td></tr>`).join("")}</tbody></table>`:'<p class="msg">No OD requests for this reg no.</p>';
+ $("odq").innerHTML=ods.length?`<table><thead><tr><th>Student</th><th>Date</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>${ods.map((o,i)=>{const s=students.find(x=>x.reg===o.reg);return `<tr><td>${esc(s?s.name:o.reg)}<br><span class="msg">${esc(o.reg)}</span></td><td>${o.date}</td><td>${esc(o.reason)}</td><td class="${o.st==="Approved"?"ok":o.st==="Rejected"?"bad":"warn"}"><b>${o.st}</b></td><td>${o.st==="Pending"?`<button class="sm" data-a="${i}">Approve</button> <button class="sm alt" data-r="${i}">Reject</button>`:""}</td></tr>`}).join("")}</tbody></table>`:'<p class="msg">No OD requests yet.</p>';
+ $("odq").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>decide(+b.dataset.a,"Approved"));
+ $("odq").querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>decide(+b.dataset.r,"Rejected"));
+}
+function decide(i,st){
+ const o=ods[i];o.st=st;
+ if(st==="Approved"){const s=students.find(x=>x.reg===o.reg);if(s){const k=key(o.date,s.course,s.reg);if(recs[k])recs[k]="OD"}}
+ save();renderAll();
+}
+$("sendOD").onclick=()=>{
+ const r=$("or").value.trim().toUpperCase(),d=$("od").value;
+ if(!students.some(s=>s.reg===r))return $("e1").textContent="Register number not found.";
+ if(!d)return $("e1").textContent="Choose the OD date.";
+ if(ods.some(o=>o.reg===r&&o.date===d&&o.st!=="Rejected"))return $("e1").textContent="You already requested OD for this date.";
+ $("e1").textContent="";ods.unshift({reg:r,date:d,reason:$("ot").value,st:"Pending"});save();renderAll();
+};
+function markTable(){
+ const c=$("mc").value,d=$("md").value,list=students.filter(s=>s.course===c);
+ $("mt").innerHTML=list.length?`<thead><tr><th>Name</th><th>Reg no</th><th>Status</th></tr></thead><tbody>${list.map(s=>{
+  const ex=recs[key(d,c,s.reg)],od=ods.some(o=>o.reg===s.reg&&o.date===d&&o.st==="Approved"),v=ex||(od?"OD":"P");
+  return `<tr><td>${esc(s.name)}</td><td>${esc(s.reg)}</td><td><select data-r="${esc(s.reg)}"><option value="P"${v==="P"?" selected":""}>Present</option><option value="A"${v==="A"?" selected":""}>Absent</option><option value="OD"${v==="OD"?" selected":""}>OD</option></select></td></tr>`}).join("")}</tbody>`:'<tbody><tr><td class="msg">No students in this course.</td></tr></tbody>';
+}
+$("saveA").onclick=()=>{
+ const c=$("mc").value,d=$("md").value;
+ if(!d||d>TODAY)return $("e2").textContent="Choose a date that is today or earlier.";
+ const sel=[...$("mt").querySelectorAll("select")];if(!sel.length)return $("e2").textContent="No students to mark.";
+ $("e2").textContent="";sel.forEach(s=>recs[key(d,c,s.dataset.r)]=s.value);save();renderAll();
+ $("e2").className="okm";$("e2").textContent="Attendance saved for "+d+".";setTimeout(()=>{$("e2").className="err";$("e2").textContent=""},2500);
+};
+$("addS").onclick=()=>{
+ const n=$("sn").value.trim(),r=$("sr").value.trim().toUpperCase();
+ if(n.length<2||r.length<3)return $("e3").textContent="Enter student name and reg no.";
+ if(students.some(s=>s.reg===r))return $("e3").textContent="This reg no already exists.";
+ $("e3").textContent="";students.push({name:n,reg:r,course:$("sc").value});save();$("sn").value=$("sr").value="";renderAll();
+};
+$("addC").onclick=()=>{
+ const c=$("cn").value.trim();
+ if(!c||courses.some(x=>x.toLowerCase()===c.toLowerCase()))return $("e3").textContent="Enter a new, different course name.";
+ $("e3").textContent="";courses.push(c);save();$("cn").value="";renderAll();
+};
+function renderAll(){fillSel();summary();odLists();markTable()}
+$("fc").onchange=$("fq").oninput=summary;$("mc").onchange=$("md").onchange=markTable;$("or").oninput=odLists;
+$("md").max=TODAY;$("md").value=TODAY;
+document.querySelectorAll("input[name=role]").forEach(r=>r.onchange=()=>{if(r.checked){const f=r.value==="stf";$("stfSec").hidden=!f;$("stfSec").style.display=f?"grid":"none";$("stuSec").hidden=f}});
+renderAll();
+</script>
+</body>
+</html>

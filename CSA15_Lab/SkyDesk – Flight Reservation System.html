@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SkyDesk – Flight Reservation</title>
+<style>
+:root{--bg:#eef3f7;--panel:#fff;--ink:#12283a;--mute:#5d7385;--line:#d3dee7;--accent:#0b6e8a;--accent-ink:#fff;--ok:#1d7a46;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a24;--panel:#162632;--ink:#e6eef4;--mute:#9bb0bf;--line:#2a4050;--accent:#4fc0dd;--accent-ink:#06222c;--ok:#5fd18f}}
+:root[data-theme="dark"]{--bg:#0e1a24;--panel:#162632;--ink:#e6eef4;--mute:#9bb0bf;--line:#2a4050;--accent:#4fc0dd;--accent-ink:#06222c;--ok:#5fd18f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Trebuchet MS","Segoe UI",system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:var(--ink);color:var(--bg)}
+header b{font-size:1.25rem;letter-spacing:.5px}
+header small{opacity:.75}
+main{max-width:980px;margin:0 auto;padding:20px;display:grid;gap:20px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{margin:0 0 14px;font-size:1.15rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 10px 12px 0}
+.seg label{padding:8px 16px;cursor:pointer;font-weight:600}
+.seg input{position:absolute;opacity:0}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink);display:block;margin:-8px -16px;padding:8px 16px}
+.seg input:focus-visible+span{outline:2px solid var(--ink);outline-offset:-2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input[type=text],input[type=date],input[type=email],input[type=number],select{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;font-weight:700;padding:10px 20px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.flight{display:grid;grid-template-columns:1.2fr 2fr 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px}
+.flight .t{font-size:1.15rem;font-weight:700}
+.tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+.price{font-size:1.2rem;font-weight:700}
+.msg{color:var(--mute)}.err{color:#c0392b;font-weight:600}
+.ticket{border:2px dashed var(--accent);border-radius:10px;padding:14px;margin-bottom:10px}
+.ticket .pnr{font-size:1.3rem;font-weight:800;color:var(--ok);letter-spacing:2px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+@media(max-width:640px){.flight{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><b>✈ SkyDesk</b><small>Flight Reservation · SaaS demo</small></header>
+<main>
+
+<section aria-labelledby="s1">
+<h2 id="s1">Search flights</h2>
+<div>
+<div class="seg"><label><input type="radio" name="trip" value="one" checked><span>One way</span></label><label><input type="radio" name="trip" value="round"><span>Round trip</span></label></div>
+<div class="seg"><label><input type="radio" name="scope" value="dom" checked><span>Domestic</span></label><label><input type="radio" name="scope" value="intl"><span>International</span></label></div>
+</div>
+<div class="grid">
+<label class="f">From<select id="from"></select></label>
+<label class="f">To<select id="to"></select></label>
+<label class="f">Departure date<input type="date" id="dep"></label>
+<label class="f" id="retWrap" hidden>Return date<input type="date" id="ret"></label>
+<label class="f">Adults (12+)<input type="number" id="adt" min="1" max="9" value="1"></label>
+<label class="f">Children (2–11)<input type="number" id="chd" min="0" max="8" value="0"></label>
+<label class="f">Infants (&lt;2)<input type="number" id="inf" min="0" max="4" value="0"></label>
+<label class="f">Class<select id="cls"><option>Economy</option><option>Premium Economy</option><option>Business</option><option>First</option></select></label>
+<label class="f">Fare type<select id="fare"><option>Regular</option><option>Student</option><option>Senior Citizen</option><option>Armed Forces</option><option>Doctor &amp; Nurse</option></select></label>
+</div>
+<p id="err" class="err" role="alert"></p>
+<button id="search">Search flights</button>
+</section>
+
+<section id="results" hidden aria-live="polite"><h2>Available flights</h2><div id="list"></div></section>
+
+<section id="book" hidden>
+<h2>Passenger &amp; contact details</h2>
+<p id="sel" class="msg"></p>
+<div id="pax" class="grid"></div>
+<div class="grid" style="margin-top:12px">
+<label class="f">Contact email<input type="email" id="email" placeholder="you@example.com"></label>
+<label class="f">Phone<input type="text" id="phone" inputmode="tel"></label>
+</div>
+<p id="err2" class="err" role="alert"></p>
+<button id="confirm">Confirm &amp; pay</button> <button class="alt" id="cancelSel">Back</button>
+</section>
+
+<section>
+<h2>My bookings</h2>
+<div id="bookings"><p class="msg">No bookings yet. Search a flight to make one.</p></div>
+</section>
+
+</main>
+<script>
+const CITIES={
+ dom:[["DEL","Delhi"],["BOM","Mumbai"],["MAA","Chennai"],["BLR","Bengaluru"],["HYD","Hyderabad"],["CCU","Kolkata"],["COK","Kochi"],["GOI","Goa"]],
+ intl:[["DXB","Dubai"],["SIN","Singapore"],["LHR","London"],["JFK","New York"],["BKK","Bangkok"],["SYD","Sydney"],["DEL","Delhi"],["MAA","Chennai"],["BOM","Mumbai"]]};
+const AIRLINES=["IndiGo","Air India","Vistara","SpiceJet","Akasa Air"];
+const INTL_AL=["Emirates","Singapore Airlines","Air India","British Airways","Qatar Airways"];
+const CLASS_X={"Economy":1,"Premium Economy":1.5,"Business":2.6,"First":4};
+const FARE_D={"Regular":0,"Student":.1,"Senior Citizen":.15,"Armed Forces":.12,"Doctor & Nurse":.08};
+const $=id=>document.getElementById(id);
+const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
+let state=null,bookings=[];
+try{bookings=JSON.parse(localStorage.getItem("skydesk")||"[]")}catch(e){}
+function save(){try{localStorage.setItem("skydesk",JSON.stringify(bookings))}catch(e){}}
+
+function fillCities(){
+ const l=CITIES[val("scope")],opt=l.map(c=>`<option value="${c[0]}">${c[1]} (${c[0]})</option>`).join("");
+ $("from").innerHTML=opt;$("to").innerHTML=opt;$("to").selectedIndex=1;
+}
+function today(){return new Date().toISOString().slice(0,10)}
+$("dep").min=$("ret").min=today();$("dep").value=today();
+document.querySelectorAll("input[name=scope]").forEach(r=>r.onchange=fillCities);
+document.querySelectorAll("input[name=trip]").forEach(r=>r.onchange=()=>{$("retWrap").hidden=val("trip")!=="round"});
+fillCities();
+
+function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
+function gen(from,to,date,scope){
+ const seed=hash(from+to+date),al=scope==="intl"?INTL_AL:AIRLINES,base=scope==="intl"?28000:4200,out=[];
+ for(let i=0;i<5;i++){
+  const h=(6+i*3+(seed%2))%24,m=((seed>>i)%4)*15,dur=(scope==="intl"?300:75)+((seed>>(i+2))%9)*15;
+  const arr=(h*60+m+dur),ah=Math.floor(arr/60)%24,am=arr%60,f=n=>String(n).padStart(2,"0");
+  out.push({airline:al[(seed+i)%al.length],no:"SD"+(100+(seed+i*37)%900),dep:`${f(h)}:${f(m)}`,arr:`${f(ah)}:${f(am)}`,dur:`${Math.floor(dur/60)}h ${dur%60}m`,
+   stops:i%3===1?"1 stop":"Non-stop",base:base+((seed>>i)%7)*650+i*300});
+ }return out;
+}
+function fare(f,s){
+ const per=f.base*CLASS_X[s.cls]*(1-FARE_D[s.fare]);
+ const tax=s.scope==="intl"?.22:.12;
+ const total=(per*s.adt+per*.75*s.chd+per*.1*s.inf)*(s.trip==="round"?1.9:1)*(1+tax);
+ return Math.round(total);
+}
+const inr=n=>"₹"+n.toLocaleString("en-IN");
+
+$("search").onclick=()=>{
+ $("err").textContent="";
+ const s={trip:val("trip"),scope:val("scope"),from:$("from").value,to:$("to").value,dep:$("dep").value,ret:$("ret").value,
+  adt:+$("adt").value||0,chd:+$("chd").value||0,inf:+$("inf").value||0,cls:$("cls").value,fare:$("fare").value};
+ if(s.from===s.to)return $("err").textContent="From and To must be different.";
+ if(!s.dep||s.dep<today())return $("err").textContent="Choose a departure date that is today or later.";
+ if(s.trip==="round"&&(!s.ret||s.ret<s.dep))return $("err").textContent="Return date must be on or after the departure date.";
+ if(s.adt<1)return $("err").textContent="At least one adult is required.";
+ if(s.inf>s.adt)return $("err").textContent="Infants cannot outnumber adults.";
+ if(s.adt+s.chd>9)return $("err").textContent="Maximum 9 travelers per booking.";
+ state={s,flights:gen(s.from,s.to,s.dep,s.scope)};
+ $("list").innerHTML=state.flights.map((f,i)=>`<div class="flight">
+  <div><b>${f.airline}</b><br><span class="tag">${f.no}</span> <span class="tag">${s.scope==="intl"?"International":"Domestic"}</span></div>
+  <div><span class="t">${f.dep}</span> ${s.from} → <span class="t">${f.arr}</span> ${s.to}<br><span class="msg">${f.dur} · ${f.stops}</span></div>
+  <div><div class="price">${inr(fare(f,s))}</div><span class="msg">${s.cls} · ${s.fare}${s.trip==="round"?" · round trip":""}</span></div>
+  <button data-i="${i}">Select</button></div>`).join("");
+ $("results").hidden=false;$("book").hidden=true;
+ $("list").querySelectorAll("button").forEach(b=>b.onclick=()=>pick(+b.dataset.i));
+ $("results").scrollIntoView({behavior:"smooth"});
+};
+
+function pick(i){
+ const {s,flights}=state,f=flights[i];state.pick=f;
+ $("sel").textContent=`${f.airline} ${f.no} · ${s.from} → ${s.to} · ${s.dep}${s.trip==="round"?" (return "+s.ret+")":""} · ${s.cls} · Total ${inr(fare(f,s))}`;
+ let h="";const kinds=[["Adult",s.adt],["Child",s.chd],["Infant",s.inf]];
+ kinds.forEach(([k,n])=>{for(let j=1;j<=n;j++)h+=`<label class="f">${k} ${j} – full name<input type="text" class="pname" data-k="${k}"></label>`});
+ if(s.scope==="intl")h+=`<label class="f">Passport number (lead traveler)<input type="text" id="passport"></label>`;
+ $("pax").innerHTML=h;$("book").hidden=false;$("err2").textContent="";
+ $("book").scrollIntoView({behavior:"smooth"});
+}
+$("cancelSel").onclick=()=>{$("book").hidden=true};
+
+$("confirm").onclick=()=>{
+ const names=[...document.querySelectorAll(".pname")],s=state.s,f=state.pick;
+ if(names.some(n=>n.value.trim().length<2))return $("err2").textContent="Enter the full name of every traveler.";
+ if(!/^\S+@\S+\.\S+$/.test($("email").value))return $("err2").textContent="Enter a valid contact email.";
+ if(s.scope==="intl"&&!/^[A-Za-z0-9]{6,9}$/.test(($("passport")||{}).value||""))return $("err2").textContent="Enter a valid passport number (6–9 letters/digits).";
+ const pnr=Math.random().toString(36).slice(2,8).toUpperCase();
+ bookings.unshift({pnr,s,f,total:fare(f,s),pax:names.map(n=>n.dataset.k+": "+n.value.trim()),email:$("email").value,at:new Date().toLocaleString()});
+ save();render();$("book").hidden=true;$("results").hidden=true;
+ document.getElementById("bookings").scrollIntoView({behavior:"smooth"});
+};
+
+function render(){
+ if(!bookings.length){$("bookings").innerHTML='<p class="msg">No bookings yet. Search a flight to make one.</p>';return}
+ $("bookings").innerHTML=bookings.map((b,i)=>`<div class="ticket">
+  <div>PNR <span class="pnr">${b.pnr}</span> <span class="tag">Confirmed</span></div>
+  <div class="wrap"><table><tr><th>Flight</th><td>${b.f.airline} ${b.f.no} · ${b.s.from} → ${b.s.to}</td></tr>
+  <tr><th>Trip</th><td>${b.s.trip==="round"?"Round trip":"One way"} · ${b.s.scope==="intl"?"International":"Domestic"}</td></tr>
+  <tr><th>Dates</th><td>${b.s.dep} ${b.f.dep}${b.s.trip==="round"?" / return "+b.s.ret:""}</td></tr>
+  <tr><th>Class / Fare</th><td>${b.s.cls} · ${b.s.fare}</td></tr>
+  <tr><th>Travelers</th><td>${b.pax.join(", ")}</td></tr>
+  <tr><th>Paid</th><td>${inr(b.total)}</td></tr></table></div>
+  <p><button class="alt" data-c="${i}">Cancel booking</button></p></div>`).join("");
+ $("bookings").querySelectorAll("button").forEach(x=>x.onclick=()=>{bookings.splice(+x.dataset.c,1);save();render()});
+}
+render();
+</script>
+</body>
+</html>

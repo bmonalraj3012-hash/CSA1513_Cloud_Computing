@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PayDesk – Payroll Processing</title>
+<style>
+:root{--bg:#eff3f1;--panel:#fff;--ink:#16241f;--mute:#62736c;--line:#d5dfda;--accent:#0b7a5a;--accent-ink:#fff;--bad:#c0392b;--ok:#1f7a45;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1714;--panel:#16231f;--ink:#e6f0ec;--mute:#9bb2a9;--line:#2b403a;--accent:#4fd0a5;--accent-ink:#04231a;--bad:#ff8a7a;--ok:#6fd39a}}
+:root[data-theme="dark"]{--bg:#0e1714;--panel:#16231f;--ink:#e6f0ec;--mute:#9bb2a9;--line:#2b403a;--accent:#4fd0a5;--accent-ink:#04231a;--bad:#ff8a7a;--ok:#6fd39a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:14px 20px;background:var(--accent);color:var(--accent-ink)}
+header b{font-size:1.35rem}header small{margin-left:10px;opacity:.85}
+main{max-width:1060px;margin:0 auto;padding:20px;display:grid;gap:20px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{margin:0 0 14px;font-size:1.15rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input[type=text],input[type=number],input[type=month],select{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;font-weight:700;padding:9px 18px;border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.sm{padding:4px 10px;font-size:.82rem}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+td.n,th.n{text-align:right}
+th{color:var(--mute);font-size:.76rem;text-transform:uppercase}
+tfoot td{font-weight:700;border-top:2px solid var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.stat b{display:block;font-size:1.25rem}.stat span{color:var(--mute);font-size:.8rem}
+.msg{color:var(--mute);font-size:.9rem}.err{color:var(--bad);font-weight:600}
+.slip{border:2px solid #222;padding:22px;background:#fff;color:#111;font-family:Georgia,serif}
+.slip h3{text-align:center;margin:0}.slip p{margin:3px 0}
+.slip table th,.slip table td{border:1px solid #888;color:#111;text-transform:none;font-size:.9rem;white-space:normal}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+@media print{body *{visibility:hidden}.slip,.slip *{visibility:visible}.slip{position:absolute;left:0;top:0;width:100%}}
+</style>
+</head>
+<body>
+<header><b>💼 PayDesk</b><small>Payroll processing · SaaS demo</small></header>
+<main>
+
+<section aria-labelledby="a1">
+<h2 id="a1">1. Pay rules &amp; month</h2>
+<div class="grid">
+<label class="f">Company name<input type="text" id="co" value="Sample Technologies Pvt Ltd"></label>
+<label class="f">Pay month<input type="month" id="mo"></label>
+<label class="f">HRA (% of basic)<input type="number" id="rh" min="0" max="100" value="20"></label>
+<label class="f">DA (% of basic)<input type="number" id="rd" min="0" max="100" value="10"></label>
+<label class="f">TA (₹ per month)<input type="number" id="rt" min="0" value="1600"></label>
+<label class="f">Experience allowance (% of basic per year in present org, max 10%)<input type="number" id="re" min="0" max="5" step="0.5" value="1"></label>
+<label class="f">PF (% of basic)<input type="number" id="rp" min="0" max="20" value="12"></label>
+<label class="f">Professional tax (₹ per month)<input type="number" id="rx" min="0" value="208"></label>
+</div>
+</section>
+
+<section aria-labelledby="a2">
+<h2 id="a2">2. Add employee</h2>
+<div class="grid">
+<label class="f">Name of the employee<input type="text" id="nm"></label>
+<label class="f">Employee ID<input type="text" id="id"></label>
+<label class="f">Designation<input type="text" id="ds"></label>
+<label class="f">Department<select id="dp"><option>Engineering</option><option>HR</option><option>Finance</option><option>Sales</option><option>Operations</option><option>Admin</option></select></label>
+<label class="f">Experience in present org (years)<input type="number" id="ep" min="0" max="50" step="0.5"></label>
+<label class="f">Overall experience (years)<input type="number" id="eo" min="0" max="50" step="0.5"></label>
+<label class="f">Basic pay (₹ per month)<input type="number" id="bp" min="1"></label>
+<label class="f">Income tax / TDS (₹ per month)<input type="number" id="tds" min="0" value="0"></label>
+</div>
+<p id="err" class="err" role="alert"></p>
+<button id="add">Add employee</button>
+</section>
+
+<section aria-labelledby="a3">
+<h2 id="a3">3. Payroll register</h2>
+<div class="stats" id="stats"></div>
+<div class="wrap"><table id="tbl"></table></div>
+<p class="msg">Gross pay = Basic + HRA + DA + TA + Experience allowance. Net pay = Gross pay − (PF + Professional tax + Income tax).</p>
+</section>
+
+<section id="slSec" hidden>
+<h2>Payslip</h2>
+<div id="slip" class="slip"></div>
+<p><button id="prt">Print / save as PDF</button> <button class="alt" id="cl">Close</button></p>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+let emps=[["Ravi Shankar","E101","Senior Engineer","Engineering",6,9,62000,6000],["Anitha Raj","E102","HR Manager","HR",4,8,54000,4200],["Suresh Babu","E103","Accountant","Finance",2,3,32000,0],["Fathima Begum","E104","Sales Executive","Sales",1,1.5,26000,0]].map(a=>({name:a[0],id:a[1],des:a[2],dep:a[3],ep:a[4],eo:a[5],bp:a[6],tds:a[7]}));
+const RK=["co","mo","rh","rd","rt","re","rp","rx"];
+$("mo").value=new Date().toISOString().slice(0,7);
+try{const d=JSON.parse(localStorage.getItem("pdesk")||"null");if(d){emps=d.emps;RK.forEach(k=>{if(d.r&&d.r[k]!=null)$(k).value=d.r[k]})}}catch(e){}
+const save=()=>{try{const r={};RK.forEach(k=>r[k]=$(k).value);localStorage.setItem("pdesk",JSON.stringify({emps,r}))}catch(e){}};
+const P=k=>+$(k).value||0;
+
+function pay(e){
+ const hra=e.bp*P("rh")/100,da=e.bp*P("rd")/100,ta=P("rt"),xp=e.bp*Math.min(10,e.ep*P("re"))/100;
+ const gross=e.bp+hra+da+ta+xp,pf=e.bp*P("rp")/100,pt=P("rx"),ded=pf+pt+e.tds;
+ return{hra,da,ta,xp,gross,pf,pt,ded,net:gross-ded};
+}
+$("add").onclick=()=>{
+ const e={name:$("nm").value.trim(),id:$("id").value.trim().toUpperCase(),des:$("ds").value.trim(),dep:$("dp").value,ep:+$("ep").value,eo:+$("eo").value,bp:+$("bp").value,tds:+$("tds").value||0};
+ if(e.name.length<2||e.id.length<2||!e.des)return $("err").textContent="Enter name, employee ID and designation.";
+ if(emps.some(x=>x.id===e.id))return $("err").textContent="This employee ID already exists.";
+ if($("ep").value===""||$("eo").value==="")return $("err").textContent="Enter both experience values.";
+ if(e.ep>e.eo)return $("err").textContent="Experience in present org cannot be more than overall experience.";
+ if(!(e.bp>0))return $("err").textContent="Enter a basic pay greater than 0.";
+ if(e.tds<0)return $("err").textContent="Income tax cannot be negative.";
+ $("err").textContent="";emps.push(e);save();["nm","id","ds","ep","eo","bp"].forEach(i=>$(i).value="");$("tds").value=0;render();
+};
+function render(){
+ const r=emps.map(e=>({e,p:pay(e)})),sum=k=>r.reduce((a,x)=>a+x.p[k],0);
+ $("stats").innerHTML=emps.length?`<div class="stat"><b>${emps.length}</b><span>Employees</span></div><div class="stat"><b>${inr(sum("gross"))}</b><span>Total gross pay</span></div><div class="stat"><b>${inr(sum("ded"))}</b><span>Total deductions</span></div><div class="stat"><b>${inr(sum("net"))}</b><span>Total net pay</span></div>`:"";
+ $("tbl").innerHTML=emps.length?`<thead><tr><th>ID</th><th>Name</th><th>Dept</th><th class="n">Exp (org / total)</th><th class="n">Basic</th><th class="n">HRA</th><th class="n">DA</th><th class="n">TA</th><th class="n">Exp allow.</th><th class="n">Gross pay</th><th class="n">PF</th><th class="n">Prof. tax</th><th class="n">Income tax</th><th class="n">Net pay</th><th></th></tr></thead><tbody>${r.map((x,i)=>`<tr><td>${esc(x.e.id)}</td><td>${esc(x.e.name)}<br><span class="msg">${esc(x.e.des)}</span></td><td>${esc(x.e.dep)}</td><td class="n">${x.e.ep} / ${x.e.eo} yrs</td><td class="n">${inr(x.e.bp)}</td><td class="n">${inr(x.p.hra)}</td><td class="n">${inr(x.p.da)}</td><td class="n">${inr(x.p.ta)}</td><td class="n">${inr(x.p.xp)}</td><td class="n"><b>${inr(x.p.gross)}</b></td><td class="n">${inr(x.p.pf)}</td><td class="n">${inr(x.p.pt)}</td><td class="n">${inr(x.e.tds)}</td><td class="n"><b>${inr(x.p.net)}</b></td><td><button class="sm" data-v="${i}">Payslip</button> <button class="sm alt" data-d="${i}">Delete</button></td></tr>`).join("")}</tbody><tfoot><tr><td colspan="4">Total</td><td class="n">${inr(emps.reduce((a,e)=>a+e.bp,0))}</td><td class="n">${inr(sum("hra"))}</td><td class="n">${inr(sum("da"))}</td><td class="n">${inr(sum("ta"))}</td><td class="n">${inr(sum("xp"))}</td><td class="n">${inr(sum("gross"))}</td><td class="n">${inr(sum("pf"))}</td><td class="n">${inr(sum("pt"))}</td><td class="n">${inr(emps.reduce((a,e)=>a+e.tds,0))}</td><td class="n">${inr(sum("net"))}</td><td></td></tr></tfoot>`:'<tbody><tr><td class="msg">No employees yet. Add one above.</td></tr></tbody>';
+ $("tbl").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>slip(+b.dataset.v));
+ $("tbl").querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{emps.splice(+b.dataset.d,1);save();$("slSec").hidden=true;render()});
+}
+function slip(i){
+ const e=emps[i],p=pay(e),m=$("mo").value?new Date($("mo").value+"-01").toLocaleDateString("en-IN",{month:"long",year:"numeric"}):"";
+ const row=(a,b,c,d)=>`<tr><td>${a}</td><td style="text-align:right">${b}</td><td>${c}</td><td style="text-align:right">${d}</td></tr>`;
+ $("slip").innerHTML=`<h3>${esc($("co").value)}</h3><p style="text-align:center">PAYSLIP FOR ${m.toUpperCase()}</p><hr>
+ <div class="two"><div><p><b>Employee:</b> ${esc(e.name)}</p><p><b>ID:</b> ${esc(e.id)}</p><p><b>Designation:</b> ${esc(e.des)}</p></div>
+ <div><p><b>Department:</b> ${esc(e.dep)}</p><p><b>Experience in present org:</b> ${e.ep} yrs</p><p><b>Overall experience:</b> ${e.eo} yrs</p></div></div>
+ <table style="margin-top:10px"><thead><tr><th>Earnings</th><th style="text-align:right">Amount</th><th>Deductions</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+ ${row("Basic pay",inr(e.bp),"Provident fund",inr(p.pf))}${row("HRA",inr(p.hra),"Professional tax",inr(p.pt))}${row("DA",inr(p.da),"Income tax (TDS)",inr(e.tds))}${row("TA",inr(p.ta),"","")}${row("Experience allowance",inr(p.xp),"","")}
+ <tr><td><b>Gross pay</b></td><td style="text-align:right"><b>${inr(p.gross)}</b></td><td><b>Total deductions</b></td><td style="text-align:right"><b>${inr(p.ded)}</b></td></tr></tbody></table>
+ <p style="margin-top:12px;font-size:1.15rem"><b>Net pay: ${inr(p.net)}</b></p>
+ <p style="margin-top:30px">Employee signature: ____________ &nbsp;&nbsp;&nbsp; Authorised signatory: ____________</p>
+ <p style="font-size:.8rem;color:#555">Demo payslip. Rates are sample settings, not statutory advice.</p>`;
+ $("slSec").hidden=false;$("slSec").scrollIntoView({behavior:"smooth"});
+}
+RK.forEach(k=>$(k).oninput=()=>{save();render()});
+$("prt").onclick=()=>window.print();$("cl").onclick=()=>{$("slSec").hidden=true};
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Madras Nest – Property Buy &amp; Rent, Chennai</title>
+<style>
+:root{--bg:#f6f1e7;--panel:#fffdf8;--ink:#2a2118;--mute:#75685a;--line:#e0d5c2;--accent:#a4341f;--accent-ink:#fff;--ok:#2a7a4b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1611;--panel:#261f18;--ink:#f1e8da;--mute:#b3a48f;--line:#40352a;--accent:#e8734f;--accent-ink:#2a1108;--ok:#6fd39a}}
+:root[data-theme="dark"]{--bg:#1b1611;--panel:#261f18;--ink:#f1e8da;--mute:#b3a48f;--line:#40352a;--accent:#e8734f;--accent-ink:#2a1108;--ok:#6fd39a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+header{padding:16px 20px;border-bottom:4px solid var(--accent);background:var(--panel)}
+header b{font-size:1.5rem}header small{display:block;color:var(--mute);font-family:system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:20px;display:grid;gap:20px;font-family:system-ui,"Segoe UI",sans-serif}
+section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px}
+h2{margin:0 0 14px;font:700 1.3rem Georgia,serif}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:0 10px 12px 0}
+.seg label{padding:8px 16px;cursor:pointer;font-weight:600}
+.seg input{position:absolute;opacity:0}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink);display:block;margin:-8px -16px;padding:8px 16px}
+.seg input:focus-visible+span{outline:2px solid var(--ink);outline-offset:-2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input[type=text],input[type=date],input[type=email],input[type=number],select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;font-weight:700;padding:10px 20px;border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{display:grid;grid-template-columns:1fr auto;gap:10px;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:10px}
+.card h3{margin:0;font:700 1.1rem Georgia,serif}
+.tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-right:4px}
+.price{font-size:1.25rem;font-weight:700;color:var(--accent);text-align:right}
+.msg{color:var(--mute)}.err{color:#c0392b;font-weight:600}
+.doc{border:1px solid var(--ink);padding:24px;background:#fff;color:#111;font-family:Georgia,serif;line-height:1.7}
+.doc h3{text-align:center;margin-top:0}
+.wrap{overflow-x:auto}
+@media print{body *{visibility:hidden}.doc,.doc *{visibility:visible}.doc{position:absolute;left:0;top:0;width:100%}}
+</style>
+</head>
+<body>
+<header><b>Madras Nest</b><small>Property buying &amp; rental in Chennai · SaaS demo</small></header>
+<main>
+
+<section aria-labelledby="s1">
+<h2 id="s1">Find a property</h2>
+<div>
+<div class="seg"><label><input type="radio" name="deal" value="buy" checked><span>Buy</span></label><label><input type="radio" name="deal" value="rent"><span>Rent</span></label></div>
+<div class="seg"><label><input type="radio" name="use" value="res" checked><span>Residential</span></label><label><input type="radio" name="use" value="com"><span>Commercial</span></label></div>
+</div>
+<div class="grid">
+<label class="f">Area / place<select id="area"><option value="">All of Chennai</option></select></label>
+<label class="f">Property type<select id="ptype"></select></label>
+<label class="f" id="bhkW">Bedrooms (BHK)<select id="bhk"><option value="">Any</option><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+<label class="f">Min size (sq ft)<input type="number" id="sqft" min="0" step="50" value="0"></label>
+<label class="f"><span id="minL">Budget from (₹)</span><input type="number" id="pmin" min="0" value="0"></label>
+<label class="f"><span id="maxL">Budget up to (₹)</span><input type="number" id="pmax" min="0"></label>
+<label class="f">Furnishing<select id="furn"><option value="">Any</option><option>Unfurnished</option><option>Semi-furnished</option><option>Furnished</option></select></label>
+</div>
+<p id="err" class="err" role="alert"></p>
+<button id="search">Search properties</button>
+</section>
+
+<section id="results" hidden aria-live="polite"><h2 id="rh">Matching properties</h2><div id="list"></div></section>
+
+<section id="enq" hidden>
+<h2 id="eh">Enquiry</h2>
+<p id="esel" class="msg"></p>
+<div class="grid">
+<label class="f">Your name<input type="text" id="en"></label>
+<label class="f">Phone<input type="text" id="ep" inputmode="tel"></label>
+<label class="f">Email<input type="email" id="ee"></label>
+<label class="f">Preferred visit date<input type="date" id="ev"></label>
+</div>
+<p id="err2" class="err" role="alert"></p>
+<button id="send">Book site visit</button> <button class="alt" id="agr" hidden>Create rental agreement</button>
+</section>
+
+<section id="agsec" hidden>
+<h2>Rental agreement</h2>
+<div class="grid">
+<label class="f">Owner (Lessor) name<input type="text" id="ao"></label>
+<label class="f">Tenant (Lessee) name<input type="text" id="at"></label>
+<label class="f">Monthly rent (₹)<input type="number" id="ar" min="0"></label>
+<label class="f">Security deposit (₹)<input type="number" id="ad" min="0"></label>
+<label class="f">Start date<input type="date" id="as"></label>
+<label class="f">Duration<select id="am"><option value="11">11 months</option><option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option></select></label>
+<label class="f">Annual rent increase (%)<input type="number" id="ai" min="0" max="25" value="5"></label>
+<label class="f">Notice period<select id="an"><option>1 month</option><option>2 months</option><option>3 months</option></select></label>
+</div>
+<p id="err3" class="err" role="alert"></p>
+<button id="gen">Generate agreement</button> <button class="alt" id="prt" hidden>Print / save as PDF</button>
+<div id="doc" class="doc" hidden style="margin-top:16px"></div>
+</section>
+
+<section>
+<h2>My enquiries &amp; visits</h2>
+<div id="mine"><p class="msg">Nothing yet. Search a property and book a site visit.</p></div>
+</section>
+</main>
+
+<script>
+const AREAS={"Adyar":1.5,"Anna Nagar":1.45,"T. Nagar":1.6,"Velachery":1.15,"OMR – Sholinganallur":1,"Porur":1,"Tambaram":.75,"Perambur":.8,"Mylapore":1.7,"Nungambakkam":1.9,"Guindy":1.3,"Medavakkam":.8,"Ambattur":.75,"Chromepet":.8,"ECR – Neelankarai":1.3};
+const TYPES={res:["Apartment","Independent house","Villa","Plot / land"],com:["Office space","Shop / showroom","Warehouse","Co-working space"]};
+const NAMES={Apartment:["Skyline Residency","Green Park Towers","Lake View Heights"],"Independent house":["Ganga Illam","Lakshmi Nivas","Sri Rama House"],Villa:["Palm Grove Villa","Marina Villas","Coral Enclave"],"Plot / land":["DTCP Approved Plot","Corner Plot","Gated Layout Plot"],"Office space":["Tidel Business Hub","IT Corridor Suites","Guindy Tech Park"],"Shop / showroom":["Main Road Showroom","Market Street Shop","Corner Retail Unit"],Warehouse:["Logistics Yard","Godown Complex","Industrial Shed"],"Co-working space":["The Desk Co.","Hive Work Club","Open Floor Hub"]};
+const SALE_PSF={Apartment:7500,"Independent house":8500,Villa:11000,"Plot / land":5500,"Office space":10500,"Shop / showroom":16000,Warehouse:3800,"Co-working space":9000};
+const RENT_PSF={Apartment:24,"Independent house":22,Villa:32,"Plot / land":6,"Office space":75,"Shop / showroom":110,Warehouse:18,"Co-working space":95};
+const $=id=>document.getElementById(id),val=n=>document.querySelector(`input[name=${n}]:checked`).value;
+const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+function fmt(n,rent){return rent?inr(n)+" / month":n>=1e7?"₹"+(n/1e7).toFixed(2)+" Cr":"₹"+(n/1e5).toFixed(1)+" L"}
+let mine=[],cur=null,lastRes=[];
+try{mine=JSON.parse(localStorage.getItem("mnest")||"[]")}catch(e){}
+const save=()=>{try{localStorage.setItem("mnest",JSON.stringify(mine))}catch(e){}};
+const hash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+
+$("area").innerHTML+=Object.keys(AREAS).map(a=>`<option>${a}</option>`).join("");
+function upd(){
+ const u=val("use"),r=val("deal")==="rent";
+ $("ptype").innerHTML=TYPES[u].map(t=>`<option>${t}</option>`).join("");
+ $("bhkW").hidden=u==="com";
+ $("minL").textContent=r?"Rent from (₹/month)":"Budget from (₹)";
+ $("maxL").textContent=r?"Rent up to (₹/month)":"Budget up to (₹)";
+ $("pmax").placeholder=r?"e.g. 40000":"e.g. 15000000";
+}
+document.querySelectorAll("input[name=deal],input[name=use]").forEach(x=>x.onchange=upd);upd();
+
+function build(deal,use){
+ const out=[];
+ Object.keys(AREAS).forEach(a=>TYPES[use].forEach(t=>{
+  const h=hash(a+t+deal),sq=t==="Plot / land"?[600,1200,2400][h%3]:t==="Warehouse"?[2000,5000,10000][h%3]:[550,850,1200,1600,2200][h%5];
+  const bhk=use==="res"&&t!=="Plot / land"?Math.min(4,1+sq/600|0):0;
+  const psf=(deal==="buy"?SALE_PSF:RENT_PSF)[t]*AREAS[a]*(0.9+(h%20)/100);
+  out.push({id:deal+a+t,a,t,sq,bhk,deal,use,furn:["Unfurnished","Semi-furnished","Furnished"][h%3],name:NAMES[t][h%3],age:h%12,price:Math.round(psf*sq/(deal==="buy"?1e4:10))*(deal==="buy"?1e4:10)});
+ }));
+ return out;
+}
+$("search").onclick=()=>{
+ $("err").textContent="";
+ const deal=val("deal"),use=val("use"),pmin=+$("pmin").value||0,pmax=+$("pmax").value||Infinity;
+ if(pmax<pmin)return $("err").textContent="Maximum price must be higher than minimum price.";
+ const a=$("area").value,t=$("ptype").value,b=$("bhk").value,sq=+$("sqft").value||0,f=$("furn").value;
+ lastRes=build(deal,use).filter(p=>(!a||p.a===a)&&p.t===t&&(!b||use==="com"||p.bhk==b)&&p.sq>=sq&&(!f||p.furn===f)&&p.price>=pmin&&p.price<=pmax).sort((x,y)=>x.price-y.price);
+ $("rh").textContent=`${lastRes.length} ${deal==="buy"?"for sale":"for rent"} · ${use==="res"?"Residential":"Commercial"} · ${t}`;
+ $("list").innerHTML=lastRes.length?lastRes.map((p,i)=>`<div class="card"><div><h3>${p.name}</h3><div class="msg">${p.a}, Chennai</div>
+  <span class="tag">${p.t}</span>${p.bhk?`<span class="tag">${p.bhk} BHK</span>`:""}<span class="tag">${p.sq} sq ft</span><span class="tag">${p.furn}</span><span class="tag">${p.age} yrs old</span></div>
+  <div><div class="price">${fmt(p.price,deal==="rent")}</div><div class="msg" style="text-align:right">${inr(p.price/p.sq)}/sq ft${deal==="rent"?" /mo":""}</div><p style="text-align:right;margin:8px 0 0"><button data-i="${i}">Enquire</button></p></div></div>`).join(""):'<p class="msg">No properties match. Widen the price range or choose All of Chennai.</p>';
+ $("results").hidden=false;$("enq").hidden=true;
+ $("list").querySelectorAll("button").forEach(x=>x.onclick=()=>pick(+x.dataset.i));
+ $("results").scrollIntoView({behavior:"smooth"});
+};
+function pick(i){
+ cur=lastRes[i];const r=cur.deal==="rent";
+ $("eh").textContent=r?"Rent enquiry":"Purchase enquiry";
+ $("esel").textContent=`${cur.name}, ${cur.a} · ${cur.sq} sq ft · ${fmt(cur.price,r)}`;
+ $("agr").hidden=!r;$("agsec").hidden=true;$("err2").textContent="";$("ev").min=new Date().toISOString().slice(0,10);
+ $("enq").hidden=false;$("enq").scrollIntoView({behavior:"smooth"});
+}
+$("send").onclick=()=>{
+ if($("en").value.trim().length<2)return $("err2").textContent="Enter your name.";
+ if(!/^[6-9]\d{9}$/.test($("ep").value.replace(/\s/g,"")))return $("err2").textContent="Enter a valid 10-digit Indian mobile number.";
+ if(!/^\S+@\S+\.\S+$/.test($("ee").value))return $("err2").textContent="Enter a valid email.";
+ if(!$("ev").value||$("ev").value<$("ev").min)return $("err2").textContent="Pick a visit date from today onward.";
+ $("err2").textContent="";
+ mine.unshift({ref:"MN"+Math.random().toString(36).slice(2,7).toUpperCase(),p:cur,name:$("en").value.trim(),visit:$("ev").value});save();renderMine();
+ $("enq").hidden=true;$("mine").scrollIntoView({behavior:"smooth"});
+};
+$("agr").onclick=()=>{$("agsec").hidden=false;$("ar").value=cur.price;$("ad").value=cur.price*3;$("at").value=$("en").value;$("as").value=$("ev").value;$("agsec").scrollIntoView({behavior:"smooth"})};
+$("gen").onclick=()=>{
+ const o=$("ao").value.trim(),t=$("at").value.trim(),r=+$("ar").value,d=+$("ad").value,s=$("as").value;
+ if(!o||!t)return $("err3").textContent="Enter both owner and tenant names.";
+ if(!(r>0)||d<0||!s)return $("err3").textContent="Enter rent, deposit and start date.";
+ $("err3").textContent="";
+ const m=+$("am").value,e=new Date(s);e.setMonth(e.getMonth()+m);e.setDate(e.getDate()-1);
+ const dt=x=>new Date(x).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+ $("doc").innerHTML=`<h3>RENTAL AGREEMENT</h3>
+ <p>This agreement is made on <b>${dt(s)}</b> at Chennai between <b>${o}</b> (the "Lessor") and <b>${t}</b> (the "Lessee").</p>
+ <p><b>1. Property.</b> The Lessor lets the ${cur.t.toLowerCase()} "${cur.name}", ${cur.a}, Chennai (${cur.sq} sq ft, ${cur.furn.toLowerCase()}) to the Lessee for ${cur.use==="res"?"residential":"commercial"} use only.</p>
+ <p><b>2. Term.</b> ${m} months, from ${dt(s)} to ${dt(e)}.</p>
+ <p><b>3. Rent.</b> ${inr(r)} per month, payable by the 5th of each month, rising ${$("ai").value}% each year on renewal.</p>
+ <p><b>4. Security deposit.</b> ${inr(d)}, interest-free, refundable at vacating after adjusting dues and damages.</p>
+ <p><b>5. Notice.</b> Either party may end this agreement with ${$("an").value}'s written notice.</p>
+ <p><b>6. Conduct.</b> The Lessee shall keep the premises in good condition, not sublet, and pay electricity, water and maintenance charges.</p>
+ <p style="margin-top:30px">Lessor: ____________ (${o})&nbsp;&nbsp;&nbsp;&nbsp; Lessee: ____________ (${t})</p>
+ <p>Witness 1: ____________&nbsp;&nbsp;&nbsp;&nbsp; Witness 2: ____________</p>
+ <p style="font-size:.8rem;color:#555">Demo template only. Register on stamp paper as required by Tamil Nadu law.</p>`;
+ $("doc").hidden=false;$("prt").hidden=false;
+};
+$("prt").onclick=()=>window.print();
+function renderMine(){
+ $("mine").innerHTML=mine.length?mine.map((x,i)=>`<div class="card"><div><h3>${x.p.name}, ${x.p.a}</h3><span class="tag">Ref ${x.ref}</span><span class="tag">${x.p.deal==="buy"?"Buy":"Rent"}</span><span class="tag">${x.p.use==="res"?"Residential":"Commercial"}</span><div class="msg">Visit on ${x.visit} · ${x.name}</div></div>
+ <div><div class="price">${fmt(x.p.price,x.p.deal==="rent")}</div><p style="text-align:right;margin:8px 0 0"><button class="alt" data-c="${i}">Cancel</button></p></div></div>`).join(""):'<p class="msg">Nothing yet. Search a property and book a site visit.</p>';
+ $("mine").querySelectorAll("button").forEach(x=>x.onclick=()=>{mine.splice(+x.dataset.c,1);save();renderMine()});
+}
+renderMine();
+</script>
+</body>
+</html>

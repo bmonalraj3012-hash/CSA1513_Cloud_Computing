@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StudyDesk – C Program Runner for Student Information</title>
+<style>
+:root{--bg:#f1f3f6;--panel:#fff;--ink:#1b2430;--mute:#647084;--line:#d8dee8;--accent:#1f5fbf;--accent-ink:#fff;--bad:#c0392b;--ok:#1f7a45;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f141c;--panel:#171e29;--ink:#e8edf5;--mute:#9aa7bc;--line:#2c3748;--accent:#7fb0ff;--accent-ink:#071a38;--bad:#ff8a7a;--ok:#6fd39a}}
+:root[data-theme="dark"]{--bg:#0f141c;--panel:#171e29;--ink:#e8edf5;--mute:#9aa7bc;--line:#2c3748;--accent:#7fb0ff;--accent-ink:#071a38;--bad:#ff8a7a;--ok:#6fd39a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:14px 20px;background:var(--accent);color:var(--accent-ink)}
+header b{font-size:1.35rem}header small{display:block;opacity:.9}
+main{max-width:1020px;margin:0 auto;padding:20px;display:grid;gap:20px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{margin:0 0 14px;font-size:1.15rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input[type=text],input[type=number]{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;font-weight:700;padding:9px 18px;border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.sm{padding:4px 10px;font-size:.82rem}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mute);font-size:.74rem;text-transform:uppercase;white-space:nowrap}
+td input{min-width:70px}td.nm input{min-width:170px}
+pre{margin:0;padding:14px;border-radius:8px;overflow:auto;font:13px/1.45 Consolas,"Courier New",monospace;max-height:520px}
+pre.src{background:#14181f;color:#cfe3ff}
+pre.out{background:#050807;color:#7dff9b}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+.msg{color:var(--mute);font-size:.9rem}.err{color:var(--bad);font-weight:600}.okm{color:var(--ok);font-weight:600}
+code{background:var(--bg);padding:1px 6px;border-radius:4px}
+@media print{body *{visibility:hidden}#out,#out *{visibility:visible}#out{position:absolute;left:0;top:0;width:100%;max-height:none;background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<header><b>🖥 StudyDesk</b><small>Cloud C program runner · Student information, attendance, progress &amp; semester mark sheet · SaaS demo</small></header>
+<main>
+
+<section aria-labelledby="a1">
+<h2 id="a1">1. Student information template</h2>
+<div class="grid">
+<label class="f">Institution<input type="text" id="inst" maxlength="40"></label>
+<label class="f">Semester / exam<input type="text" id="sem" maxlength="40"></label>
+<label class="f">Student name<input type="text" id="nm" maxlength="45"></label>
+<label class="f">Reg no<input type="text" id="rg" maxlength="18"></label>
+<label class="f">Phone<input type="text" id="ph" inputmode="tel" maxlength="10"></label>
+<label class="f">Age<input type="number" id="ag" min="15" max="60"></label>
+</div>
+<label class="f" style="margin-top:12px">Address<input type="text" id="ad" maxlength="95"></label>
+</section>
+
+<section aria-labelledby="a2">
+<h2 id="a2">2. Courses, marks &amp; attendance</h2>
+<div class="wrap"><table>
+<thead><tr><th>Course code</th><th>Course name</th><th>Internal (0–40)</th><th>External (0–60)</th><th>Classes held</th><th>Attended</th><th></th></tr></thead>
+<tbody id="rows"></tbody></table></div>
+<p id="err" class="err" role="alert"></p>
+<div class="row"><button class="alt" id="addR">+ Add course</button><button class="alt" id="samp">Load sample student</button></div>
+</section>
+
+<section aria-labelledby="a3">
+<h2 id="a3">3. Build &amp; run the C program</h2>
+<div class="row" style="margin-top:0"><button id="gen">Generate C program</button><button id="run">▶ Run program</button></div>
+<p class="msg">Generate creates a complete <code>student.c</code> from the form. Run shows the output that program prints.</p>
+</section>
+
+<section id="srcSec" hidden aria-labelledby="a4">
+<h2 id="a4">student.c</h2>
+<pre class="src" id="src" tabindex="0"></pre>
+<div class="row"><button class="alt" id="cp">Copy code</button><button class="alt" id="dl">Download student.c</button><span id="cm" class="okm" role="status"></span></div>
+<p class="msg">To run it on any machine with a C compiler: <code>gcc student.c -o student</code> then <code>./student</code></p>
+</section>
+
+<section id="outSec" hidden aria-labelledby="a5">
+<h2 id="a5">Program output</h2>
+<pre class="out" id="out" tabindex="0"></pre>
+<div class="row"><button class="alt" id="prt">Print / save as PDF</button></div>
+<p class="msg">A browser cannot run a C compiler. This panel produces the output with JavaScript code written to match the C program line for line. I compiled the generated C with gcc on test data and the output was identical.</p>
+</section>
+</main>
+
+<script>
+const cesc=s=>String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"');
+const GR=["O","A+","A","B+","B","C","F"],GP=[10,9,8,7,6,5,0],RM=["Outstanding","Excellent","Very good","Good","Average","Satisfactory","Needs improvement"];
+const band=t=>t>=90?0:t>=80?1:t>=70?2:t>=60?3:t>=50?4:t>=40?5:6;
+const pct100=(n,d)=>d>0?Math.floor((n*10000+Math.floor(d/2))/d):0;
+const f2=v=>Math.floor(v/100)+"."+String(v%100).padStart(2,"0");
+function genC(s){
+ const n=s.courses.length,cs=s.courses.map(c=>`    {"${cesc(c.code)}", "${cesc(c.name)}", ${c.int}, ${c.ext}, ${c.held}, ${c.att}}`).join(",\n");
+ return `/* Student Information System - generated by StudyDesk
+   Compile: gcc student.c -o student
+   Run    : ./student            */
+#include <stdio.h>
+
+#define N ${n}
+#define LINE "======================================================================\\n"
+#define DASH "----------------------------------------------------------------------\\n"
+
+struct Course  { char code[12]; char name[40]; int internal, external, held, attended; };
+struct Student { char name[48], reg[20], address[100], phone[16]; int age; struct Course c[N]; };
+
+static const char *GR[] = {"O","A+","A","B+","B","C","F"};
+static const int   GP[] = {10,9,8,7,6,5,0};
+static const char *RM[] = {"Outstanding","Excellent","Very good","Good","Average","Satisfactory","Needs improvement"};
+
+static int band(int t){ return t>=90?0: t>=80?1: t>=70?2: t>=60?3: t>=50?4: t>=40?5:6; }
+static int pct100(int num, int den){ return den>0 ? (int)(((long)num*10000 + den/2)/den) : 0; }
+static void f2(char *b, int v){ sprintf(b, "%d.%02d", v/100, v%100); }
+
+int main(void){
+  const char *inst = "${cesc(s.inst)}", *sem = "${cesc(s.sem)}";
+  struct Student s = {
+    "${cesc(s.name)}", "${cesc(s.reg)}", "${cesc(s.addr)}", "${cesc(s.phone)}", ${s.age},
+    {
+${cs}
+    }
+  };
+  int i, total = 0, held = 0, att = 0, gp = 0, fails = 0, p;
+  char b1[24], b2[24];
+
+  printf(LINE); printf(" %s | %s\\n", inst, sem); printf(LINE);
+  printf("1. STUDENT INFORMATION\\n"); printf(DASH);
+  printf("Name     : %s\\n", s.name);
+  printf("Reg No   : %s\\n", s.reg);
+  printf("Address  : %s\\n", s.address);
+  printf("Phone    : %s\\n", s.phone);
+  printf("Age      : %d years\\n", s.age);
+  printf("Courses  : %d (", N);
+  for(i=0;i<N;i++) printf("%s%s", i?", ":"", s.c[i].code);
+  printf(")\\n\\n");
+
+  printf("2. ATTENDANCE REPORT\\n"); printf(DASH);
+  printf("%-9s %-26s %4s %8s %8s  %s\\n","Code","Course","Held","Attended","Percent","Status");
+  for(i=0;i<N;i++){
+    struct Course *c = &s.c[i]; int v = pct100(c->attended, c->held);
+    f2(b1, v);
+    printf("%-9s %-26s %4d %8d %7s%%  %s\\n", c->code, c->name, c->held, c->attended, b1, v>=7500?"OK":"SHORTAGE");
+    held += c->held; att += c->attended;
+  }
+  p = pct100(att, held); f2(b1, p);
+  printf(DASH);
+  printf("%-9s %-26s %4d %8d %7s%%\\n", "", "Overall", held, att, b1);
+  printf("Eligibility: %s\\n\\n", p>=7500 ? "Eligible for semester examinations (75% or above)" : "NOT eligible - attendance shortage (below 75%)");
+
+  printf("3. PROGRESS REPORT\\n"); printf(DASH);
+  printf("%-9s %-26s %5s %5s %3s  %s\\n","Code","Course","Total","Grade","GP","Remark");
+  for(i=0;i<N;i++){
+    struct Course *c = &s.c[i]; int t = c->internal + c->external, k = band(t);
+    printf("%-9s %-26s %5d %5s %3d  %s\\n", c->code, c->name, t, GR[k], GP[k], RM[k]);
+    total += t; gp += GP[k]; if(t < 40) fails++;
+  }
+  p = pct100(total, N*100); f2(b1, p); f2(b2, pct100(gp, N*100));
+  printf(DASH);
+  printf("Average mark       : %s / 100\\n", b1);
+  printf("Percentage         : %s%%\\n", b1);
+  printf("GPA (10-point)     : %s\\n", b2);
+  printf("Overall performance: %s\\n\\n", RM[band(p/100)]);
+
+  printf("4. SEMESTER MARK SHEET\\n"); printf(DASH);
+  printf("Name: %s    Reg No: %s    %s\\n", s.name, s.reg, sem);
+  printf("%-9s %-26s %6s %6s %6s %5s  %s\\n","Code","Course","Int/40","Ext/60","Total","Grade","Result");
+  for(i=0;i<N;i++){
+    struct Course *c = &s.c[i]; int t = c->internal + c->external;
+    printf("%-9s %-26s %6d %6d %6d %5s  %s\\n", c->code, c->name, c->internal, c->external, t, GR[band(t)], t>=40?"PASS":"FAIL");
+  }
+  printf(DASH);
+  printf("Total marks : %d / %d\\n", total, N*100);
+  printf("Percentage  : %s%%\\n", b1);
+  printf("GPA         : %s\\n", b2);
+  if(fails == 0) printf("RESULT      : PASS\\n");
+  else { printf("RESULT      : FAIL - re-appear in:"); for(i=0;i<N;i++) if(s.c[i].internal + s.c[i].external < 40) printf(" %s", s.c[i].code); printf("\\n"); }
+  printf(LINE);
+  return 0;
+}
+`;
+}
+function runC(s){
+ const L=[],P=(x="")=>L.push(x),LINE="=".repeat(70),DASH="-".repeat(70),R=(x,w)=>String(x).padEnd(w),Lp=(x,w)=>String(x).padStart(w),n=s.courses.length;
+ let total=0,held=0,att=0,gp=0,fails=0;
+ P(LINE);P(` ${s.inst} | ${s.sem}`);P(LINE);
+ P("1. STUDENT INFORMATION");P(DASH);
+ P("Name     : "+s.name);P("Reg No   : "+s.reg);P("Address  : "+s.addr);P("Phone    : "+s.phone);P(`Age      : ${s.age} years`);
+ P(`Courses  : ${n} (${s.courses.map(c=>c.code).join(", ")})`);P();
+ P("2. ATTENDANCE REPORT");P(DASH);
+ P(`${R("Code",9)} ${R("Course",26)} ${Lp("Held",4)} ${Lp("Attended",8)} ${Lp("Percent",8)}  Status`);
+ s.courses.forEach(c=>{const v=pct100(c.att,c.held);P(`${R(c.code,9)} ${R(c.name,26)} ${Lp(c.held,4)} ${Lp(c.att,8)} ${Lp(f2(v),7)}%  ${v>=7500?"OK":"SHORTAGE"}`);held+=c.held;att+=c.att});
+ let p=pct100(att,held);
+ P(DASH);P(`${R("",9)} ${R("Overall",26)} ${Lp(held,4)} ${Lp(att,8)} ${Lp(f2(p),7)}%`);
+ P("Eligibility: "+(p>=7500?"Eligible for semester examinations (75% or above)":"NOT eligible - attendance shortage (below 75%)"));P();
+ P("3. PROGRESS REPORT");P(DASH);
+ P(`${R("Code",9)} ${R("Course",26)} ${Lp("Total",5)} ${Lp("Grade",5)} ${Lp("GP",3)}  Remark`);
+ s.courses.forEach(c=>{const t=c.int+c.ext,k=band(t);P(`${R(c.code,9)} ${R(c.name,26)} ${Lp(t,5)} ${Lp(GR[k],5)} ${Lp(GP[k],3)}  ${RM[k]}`);total+=t;gp+=GP[k];if(t<40)fails++});
+ p=pct100(total,n*100);const b1=f2(p),b2=f2(pct100(gp,n*100));
+ P(DASH);P(`Average mark       : ${b1} / 100`);P(`Percentage         : ${b1}%`);P(`GPA (10-point)     : ${b2}`);P("Overall performance: "+RM[band(Math.floor(p/100))]);P();
+ P("4. SEMESTER MARK SHEET");P(DASH);
+ P(`Name: ${s.name}    Reg No: ${s.reg}    ${s.sem}`);
+ P(`${R("Code",9)} ${R("Course",26)} ${Lp("Int/40",6)} ${Lp("Ext/60",6)} ${Lp("Total",6)} ${Lp("Grade",5)}  Result`);
+ s.courses.forEach(c=>{const t=c.int+c.ext;P(`${R(c.code,9)} ${R(c.name,26)} ${Lp(c.int,6)} ${Lp(c.ext,6)} ${Lp(t,6)} ${Lp(GR[band(t)],5)}  ${t>=40?"PASS":"FAIL"}`)});
+ P(DASH);P(`Total marks : ${total} / ${n*100}`);P(`Percentage  : ${b1}%`);P(`GPA         : ${b2}`);
+ P(fails===0?"RESULT      : PASS":"RESULT      : FAIL - re-appear in:"+s.courses.filter(c=>c.int+c.ext<40).map(c=>" "+c.code).join(""));
+ P(LINE);
+ return L.join("\n")+"\n";
+}
+const $=id=>document.getElementById(id);
+const SAMPLE={inst:"SIMATS Engineering College",sem:"Semester 3 - Nov 2026",name:"Arun Kumar",reg:"192311001",addr:"12, Gandhi Street, Tambaram, Chennai 600045",phone:"9876543210",age:20,courses:[
+{code:"CS201",name:"Data Structures",int:36,ext:55,held:60,att:54},{code:"CS202",name:"Database Systems",int:30,ext:44,held:58,att:50},{code:"CS203",name:"Operating Systems",int:33,ext:41,held:55,att:49},{code:"MA201",name:"Discrete Mathematics",int:38,ext:58,held:50,att:49},{code:"EN201",name:"Technical English",int:28,ext:42,held:30,att:29}]};
+let S=SAMPLE;
+try{const d=JSON.parse(localStorage.getItem("sdesk")||"null");if(d&&d.courses&&d.courses.length)S=d}catch(e){}
+function load(s){
+ $("inst").value=s.inst;$("sem").value=s.sem;$("nm").value=s.name;$("rg").value=s.reg;$("ph").value=s.phone;$("ag").value=s.age;$("ad").value=s.addr;
+ $("rows").innerHTML="";s.courses.forEach(addRow);
+}
+const qa=v=>String(v).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+function addRow(c={code:"",name:"",int:"",ext:"",held:"",att:""}){
+ const tr=document.createElement("tr");
+ tr.innerHTML=`<td><input type="text" maxlength="9" aria-label="Course code" value="${qa(c.code)}"></td><td class="nm"><input type="text" maxlength="26" aria-label="Course name" value="${qa(c.name)}"></td><td><input type="number" min="0" max="40" aria-label="Internal marks" value="${qa(c.int)}"></td><td><input type="number" min="0" max="60" aria-label="External marks" value="${qa(c.ext)}"></td><td><input type="number" min="0" max="500" aria-label="Classes held" value="${qa(c.held)}"></td><td><input type="number" min="0" max="500" aria-label="Classes attended" value="${qa(c.att)}"></td><td><button class="sm alt" aria-label="Remove course">✕</button></td>`;
+ tr.querySelector("button").onclick=()=>{if($("rows").children.length>1)tr.remove()};
+ $("rows").appendChild(tr);
+}
+function read(){
+ const E=m=>{$("err").textContent=m;return null};
+ const s={inst:$("inst").value.trim()||"Institution",sem:$("sem").value.trim()||"Semester",name:$("nm").value.trim(),reg:$("rg").value.trim(),addr:$("ad").value.trim(),phone:$("ph").value.trim(),age:+$("ag").value,courses:[]};
+ if(s.name.length<2)return E("Enter the student name.");
+ if(!s.reg)return E("Enter the reg no.");
+ if(s.addr.length<5)return E("Enter the address.");
+ if(!/^[6-9]\d{9}$/.test(s.phone))return E("Enter a valid 10-digit Indian mobile number.");
+ if(!($("ag").value!==""&&s.age>=15&&s.age<=60))return E("Enter an age between 15 and 60.");
+ const rows=[...$("rows").children];
+ if(rows.length>8)return E("Use 8 courses or fewer.");
+ for(const [i,tr] of rows.entries()){
+  const v=[...tr.querySelectorAll("input")].map(x=>x.value.trim()),n=i+1;
+  if(!v[0]||!v[1])return E(`Course ${n}: enter the code and name.`);
+  if(v.slice(2).some(x=>x===""))return E(`Course ${n}: fill in marks and attendance (use 0 if none).`);
+  const c={code:v[0],name:v[1],int:+v[2],ext:+v[3],held:+v[4],att:+v[5]};
+  if(![c.int,c.ext,c.held,c.att].every(Number.isInteger))return E(`Course ${n}: use whole numbers.`);
+  if(c.int<0||c.int>40)return E(`Course ${n}: internal marks must be 0 to 40.`);
+  if(c.ext<0||c.ext>60)return E(`Course ${n}: external marks must be 0 to 60.`);
+  if(c.held<0||c.att<0||c.att>c.held)return E(`Course ${n}: attended classes cannot be more than classes held.`);
+  if(s.courses.some(x=>x.code.toLowerCase()===c.code.toLowerCase()))return E(`Course ${n}: the code ${c.code} is repeated.`);
+  s.courses.push(c);
+ }
+ $("err").textContent="";
+ try{localStorage.setItem("sdesk",JSON.stringify(s))}catch(e){}
+ return s;
+}
+$("addR").onclick=()=>{if($("rows").children.length<8)addRow();else $("err").textContent="Use 8 courses or fewer."};
+$("samp").onclick=()=>{load(SAMPLE);$("err").textContent=""};
+$("gen").onclick=()=>{const s=read();if(!s)return;$("src").textContent=genC(s);$("srcSec").hidden=false;$("srcSec").scrollIntoView({behavior:"smooth"})};
+$("run").onclick=()=>{const s=read();if(!s)return;$("out").textContent=runC(s);$("outSec").hidden=false;$("outSec").scrollIntoView({behavior:"smooth"})};
+$("cp").onclick=async()=>{try{await navigator.clipboard.writeText($("src").textContent);$("cm").textContent="Copied."}catch(e){$("cm").textContent="Select the code and copy it by hand."}setTimeout(()=>$("cm").textContent="",2500)};
+$("dl").onclick=()=>{try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([$("src").textContent],{type:"text/plain"}));a.download="student.c";a.click()}catch(e){$("cm").textContent="Download is blocked here. Use Copy code instead.";setTimeout(()=>$("cm").textContent="",3000)}};
+$("prt").onclick=()=>window.print();
+load(S);
+</script>
+</body>
+</html>

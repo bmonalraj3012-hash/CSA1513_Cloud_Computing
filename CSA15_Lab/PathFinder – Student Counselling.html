@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PathFinder – Student Counselling</title>
+<style>
+:root{--bg:#fbf4ec;--panel:#fffdfa;--ink:#2b2018;--mute:#7a6a5c;--line:#e8dccd;--accent:#c4501b;--accent-ink:#fff;--ok:#1f7a45;--bad:#c0392b;--warn:#a8741a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1511;--panel:#271d17;--ink:#f3e9df;--mute:#b9a796;--line:#45342a;--accent:#f08a55;--accent-ink:#2a1105;--ok:#6fd39a;--bad:#ff8a7a;--warn:#f0c26a}}
+:root[data-theme="dark"]{--bg:#1c1511;--panel:#271d17;--ink:#f3e9df;--mute:#b9a796;--line:#45342a;--accent:#f08a55;--accent-ink:#2a1105;--ok:#6fd39a;--bad:#ff8a7a;--warn:#f0c26a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:14px 20px;background:var(--accent);color:var(--accent-ink)}
+header b{font-size:1.35rem}header small{margin-left:10px;opacity:.9}
+main{max-width:1020px;margin:0 auto;padding:20px;display:grid;gap:20px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{margin:0 0 14px;font-size:1.15rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:60px;resize:vertical}
+fieldset{border:1px solid var(--line);border-radius:8px;margin:12px 0 0;padding:10px 14px}
+legend{font-size:.85rem;color:var(--mute);padding:0 6px}
+.chk{display:inline-flex;align-items:center;gap:6px;margin:3px 14px 3px 0;cursor:pointer}
+button{font:inherit;font-weight:700;padding:9px 18px;border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.sm{padding:4px 10px;font-size:.82rem}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mute);font-size:.76rem;text-transform:uppercase;white-space:nowrap}
+.rec{border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:8px;padding:12px 14px;margin-bottom:10px}
+.rec h3{margin:0 0 2px;font-size:1.05rem}
+.tag{display:inline-block;font-size:.75rem;padding:2px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin:2px 4px 2px 0}
+.fit{font-weight:700}.hi{color:var(--ok)}.mid{color:var(--warn)}.lo{color:var(--bad)}
+.msg{color:var(--mute);font-size:.9rem}.err{color:var(--bad);font-weight:600}.okm{color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+<header><b>🧭 PathFinder</b><small>Student counselling · SaaS demo</small></header>
+<main>
+
+<section aria-labelledby="a1">
+<h2 id="a1">1. Student profile</h2>
+<div class="grid">
+<label class="f">Student name<input type="text" id="nm"></label>
+<label class="f">Age<input type="number" id="ag" min="14" max="35"></label>
+<label class="f">Phone<input type="text" id="ph" inputmode="tel"></label>
+<label class="f">Qualification completed<select id="ql"><option>10th (SSLC)</option><option selected>12th (HSC)</option><option>Diploma</option><option>Undergraduate degree</option></select></label>
+<label class="f">Year of passing<input type="number" id="yp" min="2000" max="2100"></label>
+<label class="f">Percentage of marks<input type="number" id="pc" min="0" max="100" step="0.01"></label>
+<label class="f">Domain interest<select id="di"></select></label>
+</div>
+<label class="f" style="margin-top:12px">Address<textarea id="ad" placeholder="Door no, street, area, city, PIN"></textarea></label>
+<fieldset><legend>Subjects studied (select all that apply)</legend><div id="subs"></div></fieldset>
+<p id="e1" class="err" role="alert"></p>
+<button id="save">Save profile &amp; get guidance</button>
+</section>
+
+<section id="recSec" hidden aria-live="polite">
+<h2 id="rh">Counselling guidance</h2>
+<p id="rs" class="msg"></p>
+<div id="recs"></div>
+<h2 style="margin-top:20px">Book a counselling session</h2>
+<div class="grid">
+<label class="f">Counsellor<select id="cs"></select></label>
+<label class="f">Date<input type="date" id="sd"></label>
+<label class="f">Time slot<select id="st"><option>10:00 AM</option><option>11:30 AM</option><option>2:00 PM</option><option>3:30 PM</option></select></label>
+<label class="f">Mode<select id="sm"><option>In person</option><option>Online</option></select></label>
+</div>
+<p id="e2" class="err" role="alert"></p>
+<button id="book">Book session</button>
+</section>
+
+<section>
+<h2>Registered students &amp; sessions</h2>
+<div class="wrap" id="tbl"></div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SUBJ=["Mathematics","Physics","Chemistry","Biology","Computer Science","Accountancy","Commerce","Economics","History / Civics","English / Languages","Fine Arts"];
+// domain: [needs subjects any-of groups, min %, courses, entrance, careers]
+const DOM={
+"Engineering & Technology":{need:["Mathematics","Physics"],min:60,courses:["B.E / B.Tech (CSE, ECE, Mechanical, Civil)","Diploma in Engineering (Lateral entry)"],exam:"TNEA counselling, JEE Main, university entrances",jobs:"Software, core engineering, R&D"},
+"Medicine & Health Sciences":{need:["Biology","Chemistry"],min:60,courses:["MBBS / BDS","B.Sc Nursing, BPT, B.Pharm","B.Sc Allied Health Sciences"],exam:"NEET-UG, university health-science entrances",jobs:"Doctor, dentist, pharmacist, physiotherapist"},
+"Information Technology & AI":{need:["Mathematics","Computer Science"],min:55,courses:["B.Sc / BCA Computer Science","B.Tech AI & Data Science","B.Tech Information Technology"],exam:"CUET, university entrances, TNEA",jobs:"Developer, data analyst, AI engineer"},
+"Business & Management":{need:["Commerce","Accountancy","Economics","Mathematics"],min:50,courses:["B.Com / BBA","BBA (Business Analytics)","CA / CMA foundation"],exam:"CUET, IPMAT, CA Foundation",jobs:"Manager, analyst, accountant, entrepreneur"},
+"Arts, Design & Media":{need:["Fine Arts","English / Languages","History / Civics"],min:45,courses:["B.Des / B.F.A","B.A Visual Communication, Journalism","B.A English, History"],exam:"NID DAT, UCEED, CUET",jobs:"Designer, animator, journalist, content creator"},
+"Law & Civil Services":{need:["History / Civics","English / Languages","Economics"],min:50,courses:["B.A LL.B (Integrated)","B.A Political Science with civil services coaching"],exam:"CLAT, AILET, TNPSC / UPSC later",jobs:"Lawyer, civil servant, policy analyst"},
+"Teaching & Education":{need:["English / Languages","Mathematics","History / Civics"],min:50,courses:["B.A / B.Sc + B.Ed","Diploma in Elementary Education"],exam:"TNTET, CTET",jobs:"School teacher, trainer, academic content writer"},
+"Science & Research":{need:["Physics","Chemistry","Biology","Mathematics"],min:60,courses:["B.Sc Physics, Chemistry, Biotechnology, Maths","Integrated M.Sc / BS-MS"],exam:"CUET, IISER Aptitude Test, NEST",jobs:"Scientist, lab analyst, research fellow"}};
+const COUNS=["Dr. Lakshmi Narayanan – Career guidance","Mr. Arvind Kumar – Engineering & IT","Dr. Fathima Rahman – Medical & Allied","Ms. Deepa Suresh – Commerce, Arts & Law"];
+let studs=[],sel=null;
+studs=[{name:"Sample: Harini K",age:17,phone:"9876500011",addr:"12, Gandhi Street, Tambaram, Chennai 600045",ql:"12th (HSC)",yp:2026,pc:88.5,di:"Engineering & Technology",subs:["Mathematics","Physics","Chemistry","Computer Science"],sessions:[]}];
+try{const d=JSON.parse(localStorage.getItem("pfind")||"null");if(d)studs=d}catch(e){}
+const save=()=>{try{localStorage.setItem("pfind",JSON.stringify(studs))}catch(e){}};
+$("di").innerHTML=Object.keys(DOM).map(d=>`<option>${d}</option>`).join("");
+$("subs").innerHTML=SUBJ.map((s,i)=>`<label class="chk"><input type="checkbox" value="${s}"> ${s}</label>`).join("");
+$("cs").innerHTML=COUNS.map(c=>`<option>${c}</option>`).join("");
+const today=new Date().toISOString().slice(0,10);$("sd").min=$("sd").value=today;
+
+function fit(s,d){
+ const D=DOM[d],have=D.need.filter(n=>s.subs.includes(n)).length,sub=have/Math.min(D.need.length,2);
+ const m=s.pc>=D.min?1:Math.max(0,1-(D.min-s.pc)/20);
+ return Math.round(Math.min(1,sub)*55+m*45);
+}
+function guide(s){
+ const out=Object.keys(DOM).map(d=>({d,f:fit(s,d)}));
+ out.forEach(o=>{if(o.d===s.di)o.f=Math.min(100,o.f+8)});
+ out.sort((a,b)=>b.f-a.f);
+ $("rh").textContent="Counselling guidance for "+s.name.replace("Sample: ","");
+ $("rs").textContent=`${s.ql} · ${s.pc}% · passed ${s.yp} · interest: ${s.di}. Fit score combines your subjects, marks and stated interest. It is a starting point for discussion, not a final decision.`;
+ $("recs").innerHTML=out.slice(0,3).map((o,i)=>{const D=DOM[o.d],miss=D.need.filter(n=>!s.subs.includes(n));
+  const cls=o.f>=75?"hi":o.f>=50?"mid":"lo";
+  return `<div class="rec"><h3>${i===0?"Best fit: ":""}${o.d} <span class="fit ${cls}">${o.f}% fit</span>${o.d===s.di?' <span class="tag">Your interest</span>':""}</h3>
+  <div>${D.courses.map(c=>`<span class="tag">${esc(c)}</span>`).join("")}</div>
+  <p class="msg" style="margin:6px 0 0"><b>Entrance / counselling:</b> ${D.exam}<br><b>Career options:</b> ${D.jobs}<br>${s.pc<D.min?`<span class="mid">Marks are below the usual ${D.min}% for good colleges here, so consider bridge options or a skills course.</span> `:""}${miss.length&&D.need.length>1&&miss.length===D.need.length?`<span class="mid">Subjects usually needed: ${D.need.join(", ")}.</span>`:""}</p></div>`}).join("");
+ $("recSec").hidden=false;$("recSec").scrollIntoView({behavior:"smooth"});
+}
+$("save").onclick=()=>{
+ const subs=[...document.querySelectorAll("#subs input:checked")].map(x=>x.value);
+ const s={name:$("nm").value.trim(),age:+$("ag").value,phone:$("ph").value.replace(/\s/g,""),addr:$("ad").value.trim(),ql:$("ql").value,yp:+$("yp").value,pc:+$("pc").value,di:$("di").value,subs,sessions:[]};
+ const yr=new Date().getFullYear();
+ if(s.name.length<2)return $("e1").textContent="Enter the student name.";
+ if(!(s.age>=14&&s.age<=35))return $("e1").textContent="Enter an age between 14 and 35.";
+ if(!/^[6-9]\d{9}$/.test(s.phone))return $("e1").textContent="Enter a valid 10-digit Indian mobile number.";
+ if(s.addr.length<8)return $("e1").textContent="Enter the full address.";
+ if(!(s.yp>=2000&&s.yp<=yr+1))return $("e1").textContent=`Enter a year of passing between 2000 and ${yr+1}.`;
+ if($("pc").value===""||s.pc<0||s.pc>100)return $("e1").textContent="Percentage must be between 0 and 100.";
+ if(!subs.length)return $("e1").textContent="Select at least one subject studied.";
+ $("e1").textContent="";
+ const i=studs.findIndex(x=>x.phone===s.phone);
+ if(i>=0){s.sessions=studs[i].sessions;studs[i]=s;sel=i}else{studs.unshift(s);sel=0}
+ save();render();guide(studs[sel]);
+};
+$("book").onclick=()=>{
+ if(sel==null)return $("e2").textContent="Save a profile first.";
+ const d=$("sd").value;if(!d||d<today)return $("e2").textContent="Choose a date from today onward.";
+ const wd=new Date(d).getDay();if(wd===0)return $("e2").textContent="Counselling is not available on Sundays.";
+ const s=studs[sel],clash=studs.some(x=>x.sessions.some(z=>z.c===$("cs").value&&z.d===d&&z.t===$("st").value));
+ if(clash)return $("e2").textContent="That counsellor is already booked for this slot. Pick another.";
+ $("e2").textContent="";
+ s.sessions.push({id:"CS"+Math.random().toString(36).slice(2,7).toUpperCase(),c:$("cs").value,d,t:$("st").value,m:$("sm").value});
+ save();render();$("tbl").scrollIntoView({behavior:"smooth"});
+};
+function render(){
+ $("tbl").innerHTML=studs.length?`<table><thead><tr><th>Student</th><th>Age</th><th>Phone / address</th><th>Subjects studied</th><th>Passed</th><th>%</th><th>Domain interest</th><th>Sessions</th><th></th></tr></thead><tbody>${studs.map((s,i)=>`<tr><td><b>${esc(s.name)}</b><br><span class="msg">${esc(s.ql)}</span></td><td>${s.age}</td><td>${esc(s.phone)}<br><span class="msg">${esc(s.addr)}</span></td><td>${s.subs.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</td><td>${s.yp}</td><td>${s.pc}</td><td>${esc(s.di)}</td><td>${s.sessions.length?s.sessions.map(z=>`<span class="tag">${z.id}</span> ${esc(z.c.split(" – ")[0])}<br>${z.d}, ${z.t} (${z.m}) <button class="sm alt" data-x="${i}|${z.id}">Cancel</button>`).join("<br>"):'<span class="msg">None</span>'}</td><td><button class="sm" data-g="${i}">Guidance</button> <button class="sm alt" data-d="${i}">Delete</button></td></tr>`).join("")}</tbody></table>`:'<p class="msg">No students registered yet.</p>';
+ $("tbl").querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{sel=+b.dataset.g;guide(studs[sel])});
+ $("tbl").querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{studs.splice(+b.dataset.d,1);sel=null;$("recSec").hidden=true;save();render()});
+ $("tbl").querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{const[i,id]=b.dataset.x.split("|");studs[+i].sessions=studs[+i].sessions.filter(z=>z.id!==id);save();render()});
+}
+render();
+</script>
+</body>
+</html>

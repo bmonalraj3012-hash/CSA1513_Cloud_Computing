@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIMATS Hospital – Information System</title>
+<style>
+:root{--bg:#eef5f6;--panel:#fff;--ink:#14282c;--mute:#5f777c;--line:#d3e1e3;--accent:#0a7c86;--accent-ink:#fff;--ok:#1f7a45;--bad:#c0392b;--warn:#a8741a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1a1c;--panel:#152528;--ink:#e5f1f2;--mute:#9bb5b8;--line:#2a4347;--accent:#4fcfdb;--accent-ink:#04252a;--ok:#6fd39a;--bad:#ff8a7a;--warn:#f0c26a}}
+:root[data-theme="dark"]{--bg:#0d1a1c;--panel:#152528;--ink:#e5f1f2;--mute:#9bb5b8;--line:#2a4347;--accent:#4fcfdb;--accent-ink:#04252a;--ok:#6fd39a;--bad:#ff8a7a;--warn:#f0c26a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:14px 20px;background:var(--accent);color:var(--accent-ink)}
+header b{font-size:1.35rem}header small{display:block;opacity:.9}
+main{max-width:1080px;margin:0 auto;padding:20px;display:grid;gap:20px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{margin:0 0 14px;font-size:1.15rem}h3{margin:16px 0 8px;font-size:.95rem;color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input[type=text],input[type=number],input[type=email],input[type=date],select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:56px;resize:vertical}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.seg label{padding:7px 18px;cursor:pointer;font-weight:600}
+.seg input{position:absolute;opacity:0}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink);display:block;margin:-7px -18px;padding:7px 18px}
+.seg input:focus-visible+span{outline:2px solid var(--ink);outline-offset:-2px}
+button{font:inherit;font-weight:700;padding:9px 18px;border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.sm{padding:4px 10px;font-size:.82rem}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.stat b{display:block;font-size:1.3rem}.stat span{color:var(--mute);font-size:.8rem}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mute);font-size:.74rem;text-transform:uppercase;white-space:nowrap}
+.pill{padding:2px 10px;border-radius:99px;font-weight:700;font-size:.76rem;border:1px solid var(--line);white-space:nowrap}
+.pill.adm{color:var(--warn)}.pill.dis{color:var(--ok)}.pill.opd{color:var(--accent)}
+.msg{color:var(--mute);font-size:.9rem}.err{color:var(--bad);font-weight:600}.okm{color:var(--ok);font-weight:600}
+.slip{border:2px solid #222;padding:20px;background:#fff;color:#111;font-family:Georgia,serif}
+.slip h3{color:#111;text-align:center;margin:0}.slip p{margin:3px 0}
+.slip .two{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+@media(max-width:560px){.slip .two{grid-template-columns:1fr}}
+@media print{body *{visibility:hidden}.slip,.slip *{visibility:visible}.slip{position:absolute;left:0;top:0;width:100%}}
+</style>
+</head>
+<body>
+<header><b>🏥 SIMATS Hospital</b><small>Hospital information system · Patient registration, admission &amp; discharge · SaaS demo</small></header>
+<main>
+
+<section aria-labelledby="a1">
+<h2 id="a1">1. Register patient</h2>
+<div class="seg" role="radiogroup" aria-label="Visit type"><label><input type="radio" name="vt" value="OPD" checked><span>Out-patient (OPD)</span></label><label><input type="radio" name="vt" value="IPD"><span>In-patient (IPD)</span></label></div>
+
+<h3>Patient details</h3>
+<div class="grid">
+<label class="f">Patient name<input type="text" id="nm"></label>
+<label class="f">Age (years)<input type="number" id="ag" min="0" max="120"></label>
+<label class="f">Gender<select id="gn"><option>Male</option><option>Female</option><option>Other</option></select></label>
+<label class="f">Blood group<select id="bg"><option>Unknown</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></label>
+<label class="f">Phone<input type="text" id="ph" inputmode="tel"></label>
+<label class="f">Email<input type="email" id="em"></label>
+</div>
+<label class="f" style="margin-top:12px">Address<textarea id="ad" placeholder="Door no, street, area, city, PIN"></textarea></label>
+
+<h3>Attender details</h3>
+<div class="grid">
+<label class="f">Attender name<input type="text" id="an"></label>
+<label class="f">Attender phone<input type="text" id="ap" inputmode="tel"></label>
+<label class="f">Relationship<select id="ar"><option>Father</option><option>Mother</option><option>Spouse</option><option>Son / Daughter</option><option>Sibling</option><option>Friend</option><option>Other</option></select></label>
+</div>
+
+<h3>Consultation</h3>
+<div class="grid">
+<label class="f">Department<select id="dp"></select></label>
+<label class="f">Doctor name<select id="dr"></select></label>
+<label class="f">Disease / diagnosis<input type="text" id="ds" list="dl" placeholder="e.g. Fever, Diabetes"></label>
+<label class="f">Visit / admission date<input type="date" id="dt"></label>
+</div>
+<datalist id="dl"><option>Fever</option><option>Type 2 Diabetes</option><option>Hypertension</option><option>Asthma</option><option>Dengue</option><option>Fracture</option><option>Tooth decay</option><option>Gastritis</option><option>Typhoid</option><option>Migraine</option></datalist>
+<div id="ipd" hidden>
+<h3>Admission</h3>
+<div class="grid">
+<label class="f">Ward<select id="wd"></select></label>
+<label class="f">Bed number<input type="number" id="bd" min="1"></label>
+</div>
+</div>
+<p id="err" class="err" role="alert"></p>
+<button id="reg">Register patient</button>
+</section>
+
+<section aria-labelledby="a2">
+<h2 id="a2">2. Hospital dashboard</h2>
+<div class="stats" id="stats"></div>
+<div class="grid" style="margin-bottom:12px">
+<label class="f">Search patient / ID / disease<input type="text" id="q"></label>
+<label class="f">Show<select id="fs"><option value="">All records</option><option value="OPD">OPD</option><option value="Admitted">Currently admitted</option><option value="Discharged">Discharged</option></select></label>
+<label class="f">Doctor<select id="fd"><option value="">All doctors</option></select></label>
+</div>
+<div class="wrap" id="tbl"></div>
+</section>
+
+<section id="slSec" hidden>
+<h2>Patient card</h2>
+<div id="slip" class="slip"></div>
+<p><button id="prt">Print / save as PDF</button> <button class="alt" id="cl">Close</button></p>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DEPTS={"General Medicine":["Dr. R. Venkatesh","Dr. S. Kalpana"],"Cardiology":["Dr. M. Aravind"],"Orthopaedics":["Dr. P. Karthikeyan","Dr. N. Farhana"],"Paediatrics":["Dr. L. Meenakshi"],"Dental":["Dr. A. Prakash","Dr. T. Janani"],"Gynaecology":["Dr. K. Revathi"],"ENT":["Dr. V. Sundar"],"Dermatology":["Dr. H. Nasreen"]};
+const WARDS={"General Ward":10,"Private Room":6,"ICU":4,"Paediatric Ward":6};
+const today=new Date().toISOString().slice(0,10);
+let pts=[
+{id:"SH0001",type:"OPD",name:"Lakshmi Devi",age:52,gn:"Female",bg:"B+",ph:"9840011223",em:"lakshmi@example.com",ad:"14, Temple Street, Tambaram, Chennai 600045",an:"Murugan",ap:"9840099887",ar:"Spouse",dp:"General Medicine",dr:"Dr. R. Venkatesh",ds:"Type 2 Diabetes",dt:today,status:"OPD"},
+{id:"SH0002",type:"IPD",name:"Rahul Kumar",age:27,gn:"Male",bg:"O+",ph:"9790055667",em:"rahul@example.com",ad:"8, Lake View Road, Adyar, Chennai 600020",an:"Suresh Kumar",ap:"9790012345",ar:"Father",dp:"Orthopaedics",dr:"Dr. P. Karthikeyan",ds:"Fracture",dt:today,status:"Admitted",ward:"General Ward",bed:3}];
+try{const d=JSON.parse(localStorage.getItem("shis")||"null");if(d)pts=d}catch(e){}
+const save=()=>{try{localStorage.setItem("shis",JSON.stringify(pts))}catch(e){}};
+const val=n=>document.querySelector(`input[name=${n}]:checked`).value;
+
+$("dp").innerHTML=Object.keys(DEPTS).map(d=>`<option>${d}</option>`).join("");
+$("wd").innerHTML=Object.keys(WARDS).map(w=>`<option>${w}</option>`).join("");
+$("fd").innerHTML+=Object.values(DEPTS).flat().map(d=>`<option>${d}</option>`).join("");
+$("dt").value=today;
+function docs(){$("dr").innerHTML=DEPTS[$("dp").value].map(d=>`<option>${d}</option>`).join("")}
+function ipd(){const i=val("vt")==="IPD";$("ipd").hidden=!i;$("bd").max=WARDS[$("wd").value]}
+$("dp").onchange=docs;$("wd").onchange=ipd;document.querySelectorAll("input[name=vt]").forEach(r=>r.onchange=ipd);docs();ipd();
+
+$("reg").onclick=()=>{
+ const t=val("vt"),p={type:t,name:$("nm").value.trim(),age:+$("ag").value,gn:$("gn").value,bg:$("bg").value,ph:$("ph").value.replace(/\s/g,""),em:$("em").value.trim(),ad:$("ad").value.trim(),an:$("an").value.trim(),ap:$("ap").value.replace(/\s/g,""),ar:$("ar").value,dp:$("dp").value,dr:$("dr").value,ds:$("ds").value.trim(),dt:$("dt").value};
+ const E=m=>($("err").textContent=m);
+ if(p.name.length<2)return E("Enter the patient name.");
+ if($("ag").value===""||p.age<0||p.age>120)return E("Enter a valid age (0–120).");
+ if(!/^[6-9]\d{9}$/.test(p.ph))return E("Enter a valid 10-digit patient phone number.");
+ if(!/^\S+@\S+\.\S+$/.test(p.em))return E("Enter a valid email address.");
+ if(p.ad.length<8)return E("Enter the full address.");
+ if(p.an.length<2)return E("Attender name is required.");
+ if(!/^[6-9]\d{9}$/.test(p.ap))return E("Enter a valid 10-digit attender phone number.");
+ if(p.ap===p.ph)return E("Attender phone should be different from the patient's phone.");
+ if(!p.ds)return E("Enter the disease / diagnosis.");
+ if(!p.dt)return E("Choose the visit date.");
+ if(t==="IPD"){
+  p.ward=$("wd").value;p.bed=+$("bd").value;
+  if(!(p.bed>=1&&p.bed<=WARDS[p.ward]))return E(`${p.ward} has beds 1 to ${WARDS[p.ward]}.`);
+  if(pts.some(x=>x.status==="Admitted"&&x.ward===p.ward&&x.bed===p.bed))return E("That bed is already occupied. Choose another.");
+  p.status="Admitted";
+ }else p.status="OPD";
+ E("");p.id="SH"+String(Math.max(0,...pts.map(x=>+x.id.slice(2)))+1).padStart(4,"0");
+ pts.unshift(p);save();["nm","ag","ph","em","ad","an","ap","ds","bd"].forEach(i=>$(i).value="");render();
+ $("stats").scrollIntoView({behavior:"smooth"});
+};
+function render(){
+ const adm=pts.filter(p=>p.status==="Admitted");
+ $("stats").innerHTML=`<div class="stat"><b>${pts.length}</b><span>Total patients</span></div><div class="stat"><b>${pts.filter(p=>p.dt===today).length}</b><span>Registered today</span></div><div class="stat"><b>${pts.filter(p=>p.status==="OPD").length}</b><span>OPD</span></div><div class="stat"><b>${adm.length}</b><span>Currently admitted</span></div><div class="stat"><b>${Object.values(WARDS).reduce((a,b)=>a+b,0)-adm.length}</b><span>Beds free</span></div>`;
+ const q=$("q").value.toLowerCase(),fs=$("fs").value,fd=$("fd").value;
+ const rows=pts.filter(p=>(!q||(p.name+p.id+p.ds+p.ph).toLowerCase().includes(q))&&(!fs||(fs==="OPD"?p.status==="OPD":p.status===fs))&&(!fd||p.dr===fd));
+ $("tbl").innerHTML=rows.length?`<table><thead><tr><th>ID</th><th>Patient</th><th>Contact</th><th>Attender</th><th>Doctor</th><th>Disease</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(p=>{const i=pts.indexOf(p);return `<tr><td>${p.id}</td><td><b>${esc(p.name)}</b><br><span class="msg">${p.age} yrs · ${p.gn} · ${p.bg}</span></td><td>${esc(p.ph)}<br><span class="msg">${esc(p.em)}</span><br><span class="msg">${esc(p.ad)}</span></td><td>${esc(p.an)} <span class="msg">(${p.ar})</span><br>${esc(p.ap)}</td><td>${esc(p.dr)}<br><span class="msg">${p.dp}</span></td><td>${esc(p.ds)}</td><td>${p.dt}${p.out?"<br>to "+p.out:""}</td><td><span class="pill ${p.status==="Admitted"?"adm":p.status==="Discharged"?"dis":"opd"}">${p.status}</span>${p.ward?`<br><span class="msg">${p.ward}, bed ${p.bed}</span>`:""}</td><td><button class="sm" data-v="${i}">Card</button>${p.status==="Admitted"?` <button class="sm alt" data-x="${i}">Discharge</button>`:""}</td></tr>`}).join("")}</tbody></table>`:'<p class="msg">No patient records match.</p>';
+ $("tbl").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>card(+b.dataset.v));
+ $("tbl").querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{const p=pts[+b.dataset.x];p.status="Discharged";p.out=today;save();render()});
+}
+["q","fs","fd"].forEach(i=>$(i).oninput=render);
+function card(i){
+ const p=pts[i];
+ $("slip").innerHTML=`<h3>SIMATS Hospital</h3><p style="text-align:center">PATIENT CARD · ${p.type==="IPD"?"IN-PATIENT":"OUT-PATIENT"}</p><hr>
+ <div class="two"><p><b>Patient ID:</b> ${p.id}</p><p><b>Date:</b> ${p.dt}</p><p><b>Name:</b> ${esc(p.name)}</p><p><b>Age / Gender:</b> ${p.age} / ${p.gn}</p><p><b>Blood group:</b> ${p.bg}</p><p><b>Phone:</b> ${esc(p.ph)}</p><p><b>Email:</b> ${esc(p.em)}</p><p><b>Address:</b> ${esc(p.ad)}</p>
+ <p><b>Attender:</b> ${esc(p.an)} (${p.ar})</p><p><b>Attender phone:</b> ${esc(p.ap)}</p><p><b>Department:</b> ${p.dp}</p><p><b>Doctor:</b> ${esc(p.dr)}</p><p><b>Disease / diagnosis:</b> ${esc(p.ds)}</p>${p.ward?`<p><b>Ward / bed:</b> ${p.ward}, bed ${p.bed}</p>`:""}<p><b>Status:</b> ${p.status}${p.out?" on "+p.out:""}</p></div>
+ <p style="margin-top:26px">Doctor signature: ____________ &nbsp;&nbsp;&nbsp; Registrar: ____________</p><p style="font-size:.8rem;color:#555">Demo record for a software project. Not a real medical document.</p>`;
+ $("slSec").hidden=false;$("slSec").scrollIntoView({behavior:"smooth"});
+}
+$("prt").onclick=()=>window.print();$("cl").onclick=()=>{$("slSec").hidden=true};
+render();
+</script>
+</body>
+</html>
